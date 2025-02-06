@@ -2,47 +2,102 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Auth0.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
-//using statement for authorize and claim types
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using SchoolManagementApp.MVC.Models;
 
-namespace SchoolMangementApp.MVC.Controllers;
-public class AccountController : Controller
+
+namespace SchoolManagementApp.MVC.Controllers
 {
-    public async Task Login(string returnUrl = "/")
+    public class AccountController : Controller
     {
-        var authenticationProperties = new LoginAuthenticationPropertiesBuilder()
-            // Indicate here where Auth0 should redirect the user after a login.
-            // Note that the resulting absolute Uri must be added to the
-            // **Allowed Callback URLs** settings for the app.
-            .WithRedirectUri(returnUrl)
-            .Build();
+        private readonly SchoolManagementAppDbContext _context;
 
-        await HttpContext.ChallengeAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
-    }
-
-    [Authorize]
-    public IActionResult Profile()
-    {
-        return View(new
+        public AccountController(SchoolManagementAppDbContext context)
         {
-            Name = User.Identity.Name,
-            EmailAddress = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value,
-            ProfileImage = User.Claims.FirstOrDefault(c => c.Type == "picture")?.Value
-        });
-    }
+            _context = context;
+        }
 
-    [Authorize]
-    public async Task Logout()
-    {
-        var authenticationProperties = new LogoutAuthenticationPropertiesBuilder()
-            // Indicate here where Auth0 should redirect the user after a logout.
-            // Note that the resulting absolute Uri must be added to the
-            // **Allowed Logout URLs** settings for the app.
-            .WithRedirectUri(Url.Action("Index", "Home"))
-            .Build();
+        [HttpGet]
+        public IActionResult Login()
+        {
+            return View();
+        }
 
-        await HttpContext.SignOutAsync(Auth0Constants.AuthenticationScheme, authenticationProperties);
-        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        [HttpPost]
+        public async Task<IActionResult> Login(string username, string password)
+        {   if(!ModelState.IsValid)
+            {
+                return View();
+            }
+            //checks the DB for username and password existence
+            var user = _context.Student.FirstOrDefault(u => u.Username == username && u.Password == password);
+            
+            // verifying users existence
+            if (user == null)
+            {
+                ModelState.AddModelError("", "Invalid credentials");
+                return View();
+            }
+
+            var claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.Name, user.Username),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()), // Store UserID for easy access
+            };
+
+            var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+            var authProperties = new AuthenticationProperties { IsPersistent = true };
+
+            await HttpContext.SignInAsync(
+                CookieAuthenticationDefaults.AuthenticationScheme,
+                new ClaimsPrincipal(claimsIdentity),
+                authProperties);
+
+                //after verifying users existence, it redirects to Home
+                // HttpContext.Session.SetString("User", username);
+                return RedirectToAction("Index", "Home");
+        }
+
+        public IActionResult Register(RegisterViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View();
+            }
+
+            // checks if user already exist
+            var userExists = _context.Student.Any(u => u.Username == model.Username);
+
+            // if already exists, it redirects to login page
+            if(userExists){
+                ModelState.AddModelError("", "Username already exists");
+                System.Threading.Thread.Sleep(2000);
+                return RedirectToAction("Login");
+            }
+
+            // if user is new, it adds user to the DB
+            var user = new Student
+            {
+                Username = model.Username,
+                Password = model.Password
+            };
+
+            try{
+                // adds user then saves the change to the DB
+                _context.Student.Add(user);
+                _context.SaveChanges();
+            }catch{
+                System.Console.WriteLine($"could not save changes to DB.");
+            }
+            
+        // after the user registers, it then redirects the new user to the login page
+            return RedirectToAction("Login");
+        }
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Clear();
+            return RedirectToAction("Login");
+        }
     }
 }
