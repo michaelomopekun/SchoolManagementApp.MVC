@@ -1,4 +1,9 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var hideNavbar = Context.Request.Path.StartsWithSegments("/Account/Login")|| Context.Request.Path.StartsWithSegments("/Account/Register");
+
+}
+
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -11,6 +16,7 @@
 </head>
 <body>
     <header>
+        @if(!hideNavbar){
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark border-body border-bottom box-shadow mb-3">
             <div class="container-fluid ">
                 <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">SchoolManagementApp.MVC</a>
@@ -29,10 +35,14 @@
                         <li class="nav-item">
                             <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
+                        <li class="nav-item ms-auto">
+                            <a class="btn btn-danger text-light" asp-area="" asp-controller="Account" asp-action="LogOut">LogOut</a>
+                        <li>
                     </ul>
                 </div>
             </div>
         </nav>
+    }
     </header>
     <div class="container">
         <main role="main" class="pb-3">

@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace SchoolManagementApp.MVC.Migrations
 {
     [DbContext(typeof(SchoolManagementAppDbContext))]
-    [Migration("20250206071307_InitialCreate")]
+    [Migration("20250210132706_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -75,16 +75,7 @@ namespace SchoolManagementApp.MVC.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("FirstName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LastName")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("Password")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Role")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Username")
