@@ -1,0 +1,34 @@
+@{
+    ViewData["Title"] = "Available Courses";
+}
+
+<h2>Courses</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Code</th>
+            <th>credit</th>
+
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var course in Model)
+        {
+            <tr>
+                <td>@course.Name</td>
+                <td>@course.Description</td>
+                <td>@course.Code</td>
+                <td>@course.Credit</td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@course.Id" class="btn btn-primary">Edit</a>
+                    <a asp-action="Delete" asp-route-id="@course.Id" class="btn btn-primary">Delete</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a asp-action="Create" asp-controller="Course" class="btn btn-primary">Create new Courses here</a>

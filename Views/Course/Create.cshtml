@@ -1,0 +1,84 @@
+@* 
+@{
+    ViewData["Title"] = "Create New Course";
+}
+
+@model Course
+
+<div class="container mt-5">
+    <h2>Create Course</h2>
+
+    <form asp-action="Create" class="mt-4">
+        <div class="form-group mb-3">
+            <label asp-for="Name" class="form-label"></label>
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div class="form-group mb-3">
+            <label asp-for="Description" class="form-label"></label>
+            <input asp-for="Description" class="form-control" />
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+        <div class="form-group">
+            <input type="submit" value="Create" class="btn btn-success" />
+            <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+        </div>
+    </form>
+</div> *@
+
+@{
+    ViewData["Title"] = "Create New Course";
+}
+@model Course
+
+<h2>@ViewData["Title"]</h2>
+
+<form asp-action="Create" method="post" class="form-horizontal">
+    @* <div class="form-group">
+        <label asp-for="Id" class="control-label col-md-2">Course Id</label>
+        <div class="col-md-10">
+            <input asp-for="Id" class="form-control" />
+            <span asp-validation-for="Id" class="text-danger"></span>
+        </div>
+    </div> *@
+    <div class="form-group">
+        <label asp-for="Name" class="control-label col-md-2">Course Name</label>
+        <div class="col-md-10">
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <label asp-for="Description" class="control-label col-md-2">Description</label>
+        <div class="col-md-10">
+            <textarea asp-for="Description" class="form-control"></textarea>
+            <span asp-validation-for="Description" class="text-danger"></span>
+        </div>
+    </div>
+    <div class="form-group">
+        <label asp-for="Code" class="control-label col-md-2">Code</label>
+        <div class="col-md-10">
+            <input asp-for="Code" class="form-control" />
+            <span asp-validation-for="Code" class="text-danger"></span>
+        </div>
+    </div>
+    <div class="form-group">
+        <label asp-for="Credit" class="control-label col-md-2">Course Credit</label>
+        <div class="col-md-10">
+            <input asp-for="Credit" class="form-control" />
+            <span asp-validation-for="Credit" class="text-danger"></span>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-md-offset-2 col-md-10">
+            <button type="submit" class="btn btn-primary">Create</button>
+            <a asp-action="CourseList" asp-controller="Course" class="btn btn-secondary">Back to List</a>
+
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

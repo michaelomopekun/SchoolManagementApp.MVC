@@ -1,18 +1,13 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Auth0.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
-using Microsoft.AspNetCore.Authorization;
 using SchoolManagementApp.MVC.Models;
-using Microsoft.AspNetCore.Identity;
-using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-using Microsoft.EntityFrameworkCore;
-
+using Microsoft.AspNetCore.Authorization;
 
 namespace SchoolManagementApp.MVC.Controllers
 {
+    // [Authorize]
     public class AccountController : Controller
     {
         private readonly SchoolManagementAppDbContext _context;

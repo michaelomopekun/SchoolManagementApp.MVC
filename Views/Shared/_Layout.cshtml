@@ -1,4 +1,5 @@
-﻿@{
+﻿@* [Authorize] *@
+@{
     var hideNavbar = Context.Request.Path.StartsWithSegments("/Account/Login")|| Context.Request.Path.StartsWithSegments("/Account/Register");
 
 }
@@ -28,6 +29,9 @@
                     <ul class="navbar-nav flex-grow-1">
                         <li class="nav-item">
                             <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-light" asp-area="" asp-controller="Course" asp-action="CourseList">Courses</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="About">About</a>

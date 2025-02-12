@@ -1,16 +1,38 @@
 
 // Import necessary namespaces for authentication, database access, and ASP.NET Core configuration.
+using System.Text;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using SchoolManagementApp.MVC;
 
 
 // Create a new instance of the WebApplication builder.
 var builder = WebApplication.CreateBuilder(args);
+var jwtSettings = builder.Configuration.GetSection("Jwt.Settings");
+var secretKey = Encoding.UTF8.GetBytes(jwtSettings["Secret"]);
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSettings["Issuer"],
+            ValidAudience = jwtSettings["Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(secretKey)
+        };
+    });
 
 builder.Services.AddScoped<IAuthService, AuthenticationService>();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>(); 
+builder.Services.AddScoped<ICourseRepository, CourseRepository>();
+builder.Services.AddScoped<ICourseService, CourseService>();
 
 builder.Services.AddDbContext<SchoolManagementAppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
@@ -41,8 +63,6 @@ builder.Services.AddDbContext<SchoolManagementAppDbContext>(options =>
 builder.Services.AddControllersWithViews();
 builder.Services.AddAuthorization();
 builder.Services.AddSession();
-
-// Enables session management to store user information across requests.
 builder.Services.AddSession();
 
 var app = builder.Build();

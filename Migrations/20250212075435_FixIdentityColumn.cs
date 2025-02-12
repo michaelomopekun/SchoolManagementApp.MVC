@@ -5,7 +5,7 @@
 namespace SchoolManagementApp.MVC.Migrations
 {
     /// <inheritdoc />
-    public partial class EnsureUserTable : Migration
+    public partial class FixIdentityColumn : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

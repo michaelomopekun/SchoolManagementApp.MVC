@@ -1,5 +1,3 @@
-
-using Microsoft.AspNetCore.Mvc;
 using SchoolManagementApp.MVC.Models;
 
 public interface IAuthService
