@@ -18,6 +18,11 @@ public class CourseService : ICourseService
 
     public async Task DeleteCourseAsync(int Id)
     {
+        var course = await _courseRepository.GetCourseByIdAsync(Id);
+        if (course == null)
+        {
+            throw new ArgumentException("Course not found");
+        }
         await _courseRepository.DeleteAsync(Id);
     }
 
@@ -28,7 +33,7 @@ public class CourseService : ICourseService
 
     public async Task<Course> GetCourseAsync(int Id)
     {
-        return await _courseRepository.GetCourseByCodeAsync(Id);
+        return await _courseRepository.GetCourseByIdAsync(Id);
     }
 
     public async Task UpdateCourseAsync(Course course)

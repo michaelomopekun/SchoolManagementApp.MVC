@@ -16,7 +16,7 @@ public CourseRepository(SchoolManagementAppDbContext context){
 
     public async Task DeleteAsync(int Id)
     {
-        var course = await GetCourseByCodeAsync(Id);
+        var course = await _context.Course.FindAsync(Id);
         if(course != null)
         {
             _context.Course.Remove(course);
@@ -29,7 +29,7 @@ public CourseRepository(SchoolManagementAppDbContext context){
         return await _context.Course.ToListAsync();    
     }
 
-    public async Task<Course> GetCourseByCodeAsync(int Id)
+    public async Task<Course> GetCourseByIdAsync(int Id)
     {
         return await _context.Course.FirstOrDefaultAsync(c=>c.Id == Id);
     }

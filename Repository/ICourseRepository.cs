@@ -1,6 +1,6 @@
 public interface ICourseRepository
 {
-    Task<Course> GetCourseByCodeAsync(int Id);
+    Task<Course> GetCourseByIdAsync(int Id);
     Task AddAsync(Course course);
     Task DeleteAsync(int Id);
     Task UpdateAsync (Course course);

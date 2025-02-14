@@ -6,77 +6,62 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 
 public class AuthenticationService : IAuthService
 {
-     private readonly SchoolManagementAppDbContext _context;
-     private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly JwtService _jwtService;
         private readonly IStudentRepository _studentRepository;
 
-     public AuthenticationService(IStudentRepository studentRepository,IHttpContextAccessor httpContextAccessor)
+     public AuthenticationService(IStudentRepository studentRepository,JwtService jwtService)
      {
-        //  _context = context;
         _studentRepository = studentRepository;
-        _httpContextAccessor = httpContextAccessor;
+        _jwtService = jwtService;
 
      }
-    public async Task<Student> Login(string username, string password)
+    public async Task<string> Login(string username, string password)
     {
 
             var user = await _studentRepository.GetStudentByUsernameAsync(username);
-            // System.Console.WriteLine($"username: {user.Username} password: {user.Password}");
 
-
-        if (user == null)
+        if (user == null || !VerifyPassword(password, user.Password))
         {
             Console.WriteLine("❌ Authentication failed: User does not exist.");
-            return null; // ✅ Reject login if user is not found
+            return null;
         }
 
-        if (!VerifyPassword(password, user.Password))
-        {
-            Console.WriteLine("❌ Authentication failed: Incorrect password.");
-            return null; // ✅ Reject if password is wrong
-        }
-
-        Console.WriteLine($"✅ Authentication successful for user: {user.Username}");
-        return user;
+        var token =  _jwtService.GenerateToken(user.Id.ToString(),user.Username);
+        return token;
     }
 
     private bool VerifyPassword(string password, string userPassword){
         Console.WriteLine($"password: {password} userPassword: {userPassword}");
-        // System.Threading.Thread.Sleep(20000);
         return password == userPassword;
     }
-    public async Task Logout()
-    {
-        if (_httpContextAccessor.HttpContext!= null)
-        {
-            await _httpContextAccessor.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-        }
-    }
-
+    
     public async Task<Student> Register(RegisterViewModel model)
     {
             // checks if the user already exists
-        var userExists = await _studentRepository.ExistsAsync(model.Username);
+        // var userExists = await _studentRepository.ExistsAsync(model.Username);
+        var user = await _studentRepository.GetStudentByUsernameAsync(model.Username);
+
+        
 
             // checks if the user already exists
-        if(userExists)
+        if(user != null)
             {
             Console.WriteLine($"❌ [DEBUG] User {model.Username} already exists.");
-                return null;
+                return user;
             }
 
             // creates a new user
-            var user = new Student
+            var student = new Student
             {
                 Username = model.Username,
                 Password = model.Password
             };
 
             try{
-                Console.WriteLine($"❌username: {user.Username} password: {user.Password}");
+                Console.WriteLine($"❌username: {student.Username} password: {student.Password}");
                 // adds user then saves the change to the DB
-                await _studentRepository.AddAsync(user);
-                return user;
+                await _studentRepository.AddAsync(student);
+                return student;
 
             }catch(Exception ex){
                 Console.WriteLine($"❌could not save changes to the DataBase:{ex.Message}");
@@ -86,4 +71,5 @@ public class AuthenticationService : IAuthService
             // return user;
     }
 
+ 
 }

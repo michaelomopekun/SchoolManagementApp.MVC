@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 
-public class StudentRepository:IStudentRepository{
+public class StudentRepository:IStudentRepository
+{
     private readonly SchoolManagementAppDbContext _context;
     public StudentRepository(SchoolManagementAppDbContext context)
     {

@@ -1,6 +1,6 @@
 ﻿@* [Authorize] *@
 @{
-    var hideNavbar = Context.Request.Path.StartsWithSegments("/Account/Login")|| Context.Request.Path.StartsWithSegments("/Account/Register");
+    var hideNavbar = Context.Request.Path.StartsWithSegments("/Account/Login")|| Context.Request.Path.StartsWithSegments("/Account/Register")|| Context.Request.Path.StartsWithSegments("/")|| Context.Request.Path.StartsWithSegments("/register");
 
 }
 
@@ -16,6 +16,22 @@
     <link rel="stylesheet" href="~/SchoolManagementApp.MVC.styles.css" asp-append-version="true" />
 </head>
 <body>
+<script>
+    function logout()
+    {
+        localStorage.removeItem("jwtToken");
+        //window.location.href = "/login";
+        document.getElementById("logoutForm").submit();
+    }
+</script>
+<script>
+    // Disable back button after logout
+    window.onload = function() {
+        if (window.history.replaceState) {
+            window.history.replaceState(null, null, window.location.href);
+        }
+    }
+</script>
     <header>
         @if(!hideNavbar){
         <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark border-body border-bottom box-shadow mb-3">
@@ -40,7 +56,10 @@
                             <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                         </li>
                         <li class="nav-item ms-auto">
-                            <a class="btn btn-danger text-light" asp-area="" asp-controller="Account" asp-action="LogOut">LogOut</a>
+                            <form asp-controller="Account" asp-action="Logout" asp-route-returnUrl="@Url.Action("Index", "Home")" method="post" id="logoutForm">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-danger text-light">Logout</button>
+                            </form>
                         <li>
                     </ul>
                 </div>

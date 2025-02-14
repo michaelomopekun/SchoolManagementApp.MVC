@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace SchoolManagementApp.MVC.Migrations
 {
     [DbContext(typeof(SchoolManagementAppDbContext))]
-    [Migration("20250212073821_InitialCreate")]
+    [Migration("20250213091953_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -32,6 +32,7 @@ namespace SchoolManagementApp.MVC.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Code")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Credit")
@@ -41,6 +42,7 @@ namespace SchoolManagementApp.MVC.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
@@ -72,11 +74,8 @@ namespace SchoolManagementApp.MVC.Migrations
 
             modelBuilder.Entity("Student", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int?>("CourseId")
                         .HasColumnType("int");
@@ -84,7 +83,12 @@ namespace SchoolManagementApp.MVC.Migrations
                     b.Property<string>("Password")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Username")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");

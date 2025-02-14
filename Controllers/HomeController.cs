@@ -17,7 +17,19 @@ public class HomeController : Controller
 
     [Authorize]
     public IActionResult Index()
-    {
+    {   
+        try{
+        var token = HttpContext.Session.GetString("JWTToken");
+        if(token == null)
+        {
+            return RedirectToAction("Login", "Account");
+        }
+        }
+        catch(Exception e)
+        {
+            Console.WriteLine(e.Message);
+            return RedirectToAction("Login", "Account");
+        }
         return View();
     }
     [Authorize]

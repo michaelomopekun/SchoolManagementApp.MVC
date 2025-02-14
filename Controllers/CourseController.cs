@@ -5,15 +5,22 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace SchoolManagementApp.MVC.Controllers
 {
+    // [ApiController]
+    // [Route("api/[controller]")]
+    // private readonly ICourseService _courseService;
     [Authorize]
     public class CourseController : Controller
     {
         private readonly ICourseService _courseService;
+        private readonly ICourseRepository _courseRepository;
 
-        public CourseController(ICourseService courseService)
+        public CourseController(ICourseService courseService, ICourseRepository courseRepository)
         {
             _courseService = courseService;
+            _courseRepository = courseRepository;
         }
+
+        [HttpGet("CourseList")]
         public async Task<IActionResult> CourseList()
         {
             var courses = await _courseService.GetAllCoursesAsync();
@@ -33,7 +40,8 @@ namespace SchoolManagementApp.MVC.Controllers
             }
             return View(course);
         }
-        [HttpPost]
+
+        [HttpPost("edit/{Id}")]
         public async Task<IActionResult> Edit(int Id, Course course)
         {
             if(Id != course.Id)
@@ -45,27 +53,30 @@ namespace SchoolManagementApp.MVC.Controllers
                 await _courseService.UpdateCourseAsync(course);
                 return RedirectToAction(nameof(CourseList));
             }
-            return View(course);
+            return  View(course);
         }
+        [HttpGet("edit/{Id}")]
         public async Task<IActionResult> Edit(int Id)
         {
-            var course = await _courseService.GetCourseAsync(Id);
+            var course = await _courseRepository.GetCourseByIdAsync(Id);
             if(course == null)
             {
                 return NotFound();
             }
             return View(course);
         }
+        [HttpGet]
         public async Task<IActionResult> Delete(int Id)
         {
-            var course = await _courseService.GetCourseAsync(Id);
+            var course = await _courseRepository.GetCourseByIdAsync(Id);
             if(course == null)
             {
                 return NotFound();
             }
-            return View(course);
+            return  View(course);
         }
         [HttpPost, ActionName("Delete")]
+        // [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {
             await _courseService.DeleteCourseAsync(Id);
