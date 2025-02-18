@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SchoolManagementApp.MVC;
+using SchoolManagementApp.MVC.Authorization;
+using SchoolManagementApp.MVC.Models;
 
 
 // Create a new instance of the WebApplication builder.
@@ -76,7 +78,17 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options => 
+{
+    options.AddPolicy(PolicyNames.RequireAdmin, policy =>
+        policy.RequireRole(UserRole.Admin.ToString()));
+        
+    options.AddPolicy(PolicyNames.RequireLecturer, policy =>
+        policy.RequireRole(UserRole.Lecturer.ToString()));
+        
+    options.AddPolicy(PolicyNames.RequireStudent, policy =>
+        policy.RequireRole(UserRole.Student.ToString()));
+});
 builder.Services.AddSession();
 builder.Services.AddSession();
 //register services
@@ -85,12 +97,14 @@ builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>(); 
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<ICourseService, CourseService>();
+// builder.Services.AddScoped<ILecturerRepository, LecturerRepository>();
 
 //configure DB
 builder.Services.AddDbContext<SchoolManagementAppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
-           .EnableSensitiveDataLogging()
-           .LogTo(Console.WriteLine, LogLevel.Information));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+    b => b.MigrationsAssembly("SchoolManagementApp.MVC")));
+        //    .EnableSensitiveDataLogging()
+        //    .LogTo(Console.WriteLine, LogLevel.Information));
 
 builder.Services.AddDbContext<SchoolManagementAppDbContext>(options =>
 {

@@ -1,10 +1,25 @@
-// namespace SchoolManagementApp.MVC.Models;
-public class Student
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using SchoolManagementApp.MVC.Models;
+
+public class User : IUser
 {
-    public int Id { get; set; }
+    [Key]
+    [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+    public int Id { get; set; }  // Changed from string to int
+
+    [Required]
+    [StringLength(50)]
     public string Username { get; set; }
-    public string? Password { get; set; }
-    // public string? FirstName { get; set; }
-    // public string? LastName { get; set; }
-    // public string Role { get; set; }
+
+    [Required]
+    public string Password { get; set; }
+
+    [Required]
+    public UserRole Role { get; set; }
+
+    public int? CourseId { get; set; }
+
+    [ForeignKey("CourseId")]
+    public virtual Course? Course { get; set; }
 }

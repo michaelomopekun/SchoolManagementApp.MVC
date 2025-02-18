@@ -8,4 +8,14 @@ public class LoginView
     [Required]
     [DataType(DataType.Password)]
     public string? Password { get; set; }
+    [Required]
+    [Display(Name = "Login As")]
+    public UserRole Role { get; set; }
+}
+
+public enum UserRole
+{
+    Student,
+    Lecturer,
+    Admin
 }

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SchoolManagementApp.MVC.Models;
 
 public class StudentRepository:IStudentRepository
 {
@@ -7,14 +8,14 @@ public class StudentRepository:IStudentRepository
     {
         _context = context;
     }
-    public async Task<Student> GetStudentByUsernameAsync(string username){
+    public async Task<User> GetUserByUsernameAsync(string username){
 
     try
         {
             Console.WriteLine("🔍 Checking database for user: " + username); // Debug log
 
             // ✅ Ensure query is executed on the database directly
-            var userQuery = _context.Student.AsQueryable();
+            var userQuery = _context.Users.AsQueryable();
             var user = await userQuery.FirstOrDefaultAsync(u => u.Username == username);
 
             Console.WriteLine(user != null 
@@ -29,23 +30,23 @@ public class StudentRepository:IStudentRepository
         return null;
     }
         
-        // return await _context.Student.FirstOrDefaultAsync(u=> u.Username == username);
     }
 
 
-    public async Task AddAsync(Student student){
-        if(student == null)
+    public async Task AddAsync(User user){
+        if(user == null)
         {
             Console.WriteLine("❌student is null");
-            throw new ArgumentNullException(nameof(student));
+            throw new ArgumentNullException(nameof(user));
         }
 
-        Console.WriteLine($"✅ Adding student: {student.Username}");
-        _context.Student.Add(student);
+        Console.WriteLine($"✅ Adding student: {user.Username}");
+        await _context.Users.AddAsync(user);
         await _context.SaveChangesAsync();
-        Console.WriteLine($"✅ Student saved to the database: {student.Username}");
+        Console.WriteLine($"✅ Student saved to the database: {user.Username}");
     }
     public async Task<bool> ExistsAsync(string username){
-        return await _context.Student.AnyAsync(u=> u.Username == username);
+        // var user = await _context.Users.AnyAsync(u=> u.Username == username);
+        return await _context.Users.AnyAsync(u=> (u.Username == username));
     }
 }

@@ -26,7 +26,7 @@ public class JwtService
         }
     }
 
-    public string GenerateToken(string userId,string username)
+    public string GenerateToken(int userId,string username)
     {
         if (string.IsNullOrEmpty(_secret) || _secret.Length < 32)
         {
@@ -40,7 +40,7 @@ public class JwtService
 
         var claim = new[]
         {
-            new Claim(ClaimTypes.NameIdentifier, userId),
+            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
             new Claim(ClaimTypes.Name, username),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };

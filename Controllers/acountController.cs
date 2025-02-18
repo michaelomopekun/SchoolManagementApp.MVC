@@ -15,17 +15,19 @@ namespace SchoolManagementApp.MVC.Controllers
     public class AccountController : Controller
     {
         private readonly SchoolManagementAppDbContext _context;
-
+        private readonly IStudentRepository _studentRepository;
+        // private readonly ILecturerRepository _lecturerRepository;
         private readonly IAuthService _authService;
         private readonly JwtService _jwtService;
         // private readonly IStudentRepository _studentRepository;
 
-        public AccountController(SchoolManagementAppDbContext context, IAuthService authService, JwtService jwtService)
+        public AccountController(SchoolManagementAppDbContext context, IAuthService authService, JwtService jwtService, IStudentRepository studentRepository)
         {
             _context = context;
             _authService = authService;
             _jwtService = jwtService;
-            // _studentRepository = studentRepository;
+            _studentRepository = studentRepository;
+            // _lecturerRepository = lecturerRepository;
         }
     
         [HttpGet]
@@ -51,7 +53,7 @@ namespace SchoolManagementApp.MVC.Controllers
                 return View(model);
             }
 
-        var token = await _authService.Login(model.Username, model.Password);
+        var token = await _authService.Login(model.Username, model.Password, model.Role);
 
         if(token==null)
         {
@@ -60,6 +62,7 @@ namespace SchoolManagementApp.MVC.Controllers
         }
         //store token in session
         HttpContext.Session.SetString("JWTToken", token);
+        HttpContext.Session.SetString("Role", model.Role.ToString());
 
         return RedirectToAction("Index", "Home");
         }
@@ -74,23 +77,26 @@ namespace SchoolManagementApp.MVC.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
-            if (!ModelState.IsValid)
+             if (!ModelState.IsValid)
             {
                 return View(model);
             }
 
-            var usernameExists = await _authService.Register(model);
+            Console.WriteLine($"Registering user with role: {model.Role}");
+            
+            IUser user = await _authService.Register(model, model.Role);
 
-            if(usernameExists==null)
+            if (user == null)
             {
                 ModelState.AddModelError("", "User already exists");
-                return RedirectToAction("Login");
+                return View(model);
             }
-                var token = _jwtService.GenerateToken(usernameExists.Id.ToString(), usernameExists.Username);
 
-                HttpContext.Session.SetString("JWTToken", token);
+            var token = _jwtService.GenerateToken(user.Id, user.Username);
+            HttpContext.Session.SetString("JWTToken", token);
+            HttpContext.Session.SetString("Role", model.Role.ToString());
 
-                return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Home");
         }
 
             [Authorize]
@@ -102,9 +108,7 @@ namespace SchoolManagementApp.MVC.Controllers
             HttpContext.Session.Clear();
 
             // Response.Headers.Add("Cache-Control", "no-cache", "no-store", "must-revalidate");
-            Response.Headers.Add("Pragma", "no-cache");
-            
-            
+            // Response.Headers.Add("Pragma", "no-cache");
 
             if(Request.Headers["Accept"].Contains("application/json"))
             {
@@ -130,7 +134,7 @@ namespace SchoolManagementApp.MVC.Controllers
                 return BadRequest(ModelState);
             }
 
-            var token = await _authService.Login(model.Username, model.Password);
+            var token = await _authService.Login(model.Username, model.Password, model.Role);
 
             if (token == null)
             {
@@ -148,14 +152,15 @@ namespace SchoolManagementApp.MVC.Controllers
                 return BadRequest(ModelState);
             }
 
-            var usernameExists = await _authService.Register(model);
-            if (usernameExists == null)
+            IUser user = await _authService.Register(model, model.Role);
+            if (user == null)
             {
-                var alreadyExistingUserToken = _jwtService.GenerateToken(usernameExists.Id.ToString(), usernameExists.Username);
-                return Ok(new { Token = alreadyExistingUserToken, Message = "User already exists" });
+                return Conflict(new { Message = "User already exists" });
             }
+            // var usernameExistsToken = await _authService.Register(model, model.Role);
 
-            var token = _jwtService.GenerateToken(usernameExists.Id.ToString(), usernameExists.Username);
+            var token = _jwtService.GenerateToken(user.Id, user.Username);
+
 
             return Ok(new { Token = token, Message = "Registration successful" });
         }

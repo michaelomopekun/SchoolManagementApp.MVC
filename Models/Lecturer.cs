@@ -1,8 +1,20 @@
-// namespace SchoolManagementApp.MVC.Models;
-public class Lecturers
-{
-    public int Id { get; set; }
-    public string? FirstName { get; set; }
-    public string? LastName { get; set; }
-    public string? Role { get; set; }
-}
+// using System.ComponentModel.DataAnnotations;
+// using System.ComponentModel.DataAnnotations.Schema;
+// using SchoolManagementApp.MVC.Models;
+
+// public class Lecturer : IUser
+// {
+//     [Key]
+//     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+//     public int Id { get; set; }  
+
+//     [Required]
+//     [StringLength(50)]
+//     public string Username { get; set; }
+
+//     [Required]
+//     public string Password { get; set; }
+
+//     [Required]
+//     public UserRole Role { get; set; }
+// }

@@ -47,7 +47,7 @@ namespace SchoolManagementApp.MVC.Migrations
                     b.ToTable("Course");
                 });
 
-            modelBuilder.Entity("Lecturers", b =>
+            modelBuilder.Entity("User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -55,34 +55,22 @@ namespace SchoolManagementApp.MVC.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("FirstName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("LastName")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Role")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Lecturers");
-                });
-
-            modelBuilder.Entity("Student", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<int?>("CourseId")
                         .HasColumnType("int");
 
                     b.Property<string>("Password")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Username")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.HasKey("Id");
 
@@ -91,19 +79,21 @@ namespace SchoolManagementApp.MVC.Migrations
                     b.HasIndex("Username")
                         .IsUnique();
 
-                    b.ToTable("Student");
+                    b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Student", b =>
+            modelBuilder.Entity("User", b =>
                 {
-                    b.HasOne("Course", null)
-                        .WithMany("Students")
+                    b.HasOne("Course", "Course")
+                        .WithMany("users")
                         .HasForeignKey("CourseId");
+
+                    b.Navigation("Course");
                 });
 
             modelBuilder.Entity("Course", b =>
                 {
-                    b.Navigation("Students");
+                    b.Navigation("users");
                 });
 #pragma warning restore 612, 618
         }

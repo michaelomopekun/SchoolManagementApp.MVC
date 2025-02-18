@@ -14,5 +14,5 @@ public class Course
     public string? Credit { get; set; }
     public string? Description { get; set; }
 
-    public ICollection<Student>? Students { get; set; } = new List<Student>();
+    public ICollection<User>? users { get; set; } = new List<User>();
 }

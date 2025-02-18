@@ -1,4 +1,3 @@
-
 using SchoolManagementApp.MVC.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -8,68 +7,105 @@ public class AuthenticationService : IAuthService
 {
         private readonly JwtService _jwtService;
         private readonly IStudentRepository _studentRepository;
+        // private readonly ILecturerRepository _lecturerRepository;
 
      public AuthenticationService(IStudentRepository studentRepository,JwtService jwtService)
      {
         _studentRepository = studentRepository;
         _jwtService = jwtService;
-
+        // _lecturerRepository = lecturerRepository;
      }
-    public async Task<string> Login(string username, string password)
+    public async Task<string> Login(string username, string password, UserRole role)
     {
-
-            var user = await _studentRepository.GetStudentByUsernameAsync(username);
-
-        if (user == null || !VerifyPassword(password, user.Password))
-        {
-            Console.WriteLine("❌ Authentication failed: User does not exist.");
+        // switch (role){
+            // case UserRole.Lecturer:
+            // var lecturer = await _lecturerRepository.GetLecturerByUsernameAsync(username);
+            // if(lecturer != null && VerifyPassword(password, lecturer.Password))
+            // {
+            //     return _jwtService.GenerateToken(lecturer.Id,lecturer.Username);
+            // }
+            // break; 
+            // case UserRole.Student:
+            var User = await _studentRepository.GetUserByUsernameAsync(username);
+            if (User != null && VerifyPassword(password, User.Password,role.ToString(),User.Role.ToString()))
+            {
+                return _jwtService. GenerateToken(User.Id,User.Username);
+            }
+            // break;
             return null;
         }
+        // return null;
+    // }
+    
 
-        var token =  _jwtService.GenerateToken(user.Id.ToString(),user.Username);
-        return token;
-    }
-
-    private bool VerifyPassword(string password, string userPassword){
+    private bool VerifyPassword(string password, string userPassword, string userRole, string role){
         Console.WriteLine($"password: {password} userPassword: {userPassword}");
-        return password == userPassword;
+        var verified = (password == userPassword) && (role == userRole);
+        return verified;
     }
     
-    public async Task<Student> Register(RegisterViewModel model)
+    public async Task<IUser> Register(RegisterViewModel model, UserRole role)
     {
-            // checks if the user already exists
-        // var userExists = await _studentRepository.ExistsAsync(model.Username);
-        var user = await _studentRepository.GetStudentByUsernameAsync(model.Username);
+        // switch (role)
+        // {
+            // case UserRole.Student:
+                var existingUser = await _studentRepository.ExistsAsync(model.Username);
+                // var existingUser2 = await _studentRepository.GetUserByUsernameAsync(model.Username);
+                if( existingUser)
+                {
+                    Console.WriteLine($"❌ [DEBUG] User {model.Username} already exists.");
+                    return null;
+                }
 
-        
+                var newUser = new User
+                {
+                    Username = model.Username,
+                    Password = model.Password,
+                    Role = role
+                };
 
-            // checks if the user already exists
-        if(user != null)
-            {
-            Console.WriteLine($"❌ [DEBUG] User {model.Username} already exists.");
-                return user;
-            }
+                try
+                {
+                    Console.WriteLine($"✅ Adding {role}: {newUser.Username}");
+                    await _studentRepository.AddAsync(newUser);
+                    Console.WriteLine($"✅ Student saved to the database: {newUser.Username}");
+                    return newUser;
+                }
+                catch(Exception ex)
+                {
+                    Console.WriteLine($"❌ Could not save changes to the database: {ex.Message}");
+                    return null;
+                }
 
-            // creates a new user
-            var student = new Student
-            {
-                Username = model.Username,
-                Password = model.Password
-            };
+            // case UserRole.Lecturer:
+            //     var existingLecturer = await _lecturerRepository.GetLecturerByUsernameAsync(model.Username);
+            //     if(existingLecturer != null)
+            //     {
+            //         Console.WriteLine($"❌ [DEBUG] User {model.Username} already exists.");
+            //         return null;
+            //     }
 
-            try{
-                Console.WriteLine($"❌username: {student.Username} password: {student.Password}");
-                // adds user then saves the change to the DB
-                await _studentRepository.AddAsync(student);
-                return student;
+            //     var newLecturer = new Lecturer
+            //     {
+            //         Username = model.Username,
+            //         Password = model.Password,
+            //         Role = UserRole.Lecturer
+            //     };
 
-            }catch(Exception ex){
-                Console.WriteLine($"❌could not save changes to the DataBase:{ex.Message}");
-                return null;
-            }
+            //     try
+            //     {
+            //         Console.WriteLine($"✅ Adding Lecturer: {newLecturer.Username}");
+            //         await _lecturerRepository.AddAsync(newLecturer);
+            //         Console.WriteLine($"✅ Lecturer saved to the database: {newLecturer.Username}");
+            //         return newLecturer;
+            //     }
+            //     catch(Exception ex)
+            //     {
+            //         Console.WriteLine($"❌ Could not save changes to the database: {ex.Message}");
+            //         return null;
+            //     }
 
-            // return user;
+        }
     }
 
  
-}

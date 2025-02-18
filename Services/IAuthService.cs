@@ -2,6 +2,6 @@ using SchoolManagementApp.MVC.Models;
 
 public interface IAuthService
 {
-    public Task<Student> Register(RegisterViewModel model);
-    public Task<string> Login(string username, string password);
+    public Task<IUser> Register(RegisterViewModel model, UserRole role);
+    public Task<string> Login(string username, string password,UserRole role);
 }
