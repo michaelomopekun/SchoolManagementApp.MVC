@@ -40,7 +40,7 @@
         {
             <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark border-body border-bottom box-shadow mb-3">
                 <div class="container-fluid">
-                    <a class="navbar-brand" asp-controller="Home" asp-action="Index">SchoolManagementApp.MVC</a>
+                    <a class="navbar-brand" asp-controller="Home" asp-action="Index">SchoolManagementApp</a>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
                         <span class="navbar-toggler-icon"></span>
                     </button>
@@ -52,6 +52,12 @@
                             </li>
                             <li class="nav-item">
                                 <a class="nav-link text-light" asp-controller="Course" asp-action="CourseList">Courses</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="About">About</a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                             </li>
                         </ul>
                         <ul class="navbar-nav">
@@ -112,7 +118,7 @@
 
     <footer class="border-top footer text-muted">
         <div class="container">
-            &copy; @DateTime.Now.Year - SchoolManagementApp.MVC - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+             SchoolManagementApp <a asp-area="" asp-controller="Home" asp-action="Privacy"></a>
         </div>
     </footer>
     <script src="~/lib/jquery/dist/jquery.min.js"></script>

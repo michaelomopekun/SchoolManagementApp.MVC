@@ -27,11 +27,11 @@ namespace SchoolManagementApp.MVC.Services
             
             if (user != null && VerifyPassword(password, user.Password, role.ToString(), user.Role.ToString()))
             {
-                var permissions = await GetPermissionsForRole(role.ToString());
+                var permissions = await GetPermissionsForRole(user.Role.ToString());
                 var token = _jwtService.GenerateToken(
                     user.Id, 
                     user.Username, 
-                    role.ToString(), 
+                    user.Role.ToString(),
                     permissions);
                     
                 return (token);
@@ -42,7 +42,7 @@ namespace SchoolManagementApp.MVC.Services
 
         private bool VerifyPassword(string password, string userPassword, string userRole, string role)
         {
-            return (password == userPassword) && (role == userRole);
+            return (password == userPassword);
         }
         
         public async Task<IUser> Register(RegisterViewModel model, UserRole role)
