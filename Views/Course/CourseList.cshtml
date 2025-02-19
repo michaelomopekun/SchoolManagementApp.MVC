@@ -22,13 +22,27 @@
                 <td>@course.Description</td>
                 <td>@course.Code</td>
                 <td>@course.Credit</td>
+
+                @if (User.IsInRole("Admin") || User.IsInRole("Lecturer"))
+                {
                 <td>
                     <a asp-action="Edit" asp-route-id="@course.Id" class="btn btn-primary">Edit</a>
                     <a asp-action="Delete" asp-route-id="@course.Id" class="btn btn-primary">Delete</a>
                 </td>
+                }
+                @if (User.IsInRole("Student"))
+                {
+                    <td>
+                    <a asp-action="Details" asp-route-id="@course.Id" class="btn btn-info">Details</a>
+                    <a asp-action="Enroll" asp-route-id="@course.Id" class="btn btn-success">Enroll</a>
+                    </td>
+                }
+
             </tr>
         }
     </tbody>
 </table>
-
+@if (User.IsInRole("Admin") || User.IsInRole("Lecturer"))
+{
 <a asp-action="Create" asp-controller="Course" class="btn btn-primary">Create new Courses here</a>
+}

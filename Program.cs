@@ -1,13 +1,13 @@
-
 // Import necessary namespaces for authentication, database access, and ASP.NET Core configuration.
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SchoolManagementApp.MVC;
 using SchoolManagementApp.MVC.Authorization;
 using SchoolManagementApp.MVC.Models;
-
+using SchoolManagementApp.MVC.Services;
 
 // Create a new instance of the WebApplication builder.
 var builder = WebApplication.CreateBuilder(args);
@@ -19,58 +19,83 @@ if (string.IsNullOrEmpty(secret))
     throw new InvalidOperationException("JWT Secret is not configured properly.");
 }
 
+// Configure DbContext
+builder.Services.AddDbContext<SchoolManagementAppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+        b => b.MigrationsAssembly("SchoolManagementApp.MVC")));
+
+// Add Identity with SignInManager and UserManager
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => 
+{
+    options.Password.RequireDigit = false;
+    options.Password.RequiredLength = 6;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireLowercase = false;
+    options.SignIn.RequireConfirmedAccount = false;
+})
+.AddEntityFrameworkStores<SchoolManagementAppDbContext>()
+.AddDefaultTokenProviders()
+.AddSignInManager<SignInManager<IdentityUser>>()
+.AddUserManager<UserManager<IdentityUser>>();
+
+// Configure Cookie Policy
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.LogoutPath = "/Account/Logout";
+    options.AccessDeniedPath = "/Account/AccessDenied";
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+    options.SlidingExpiration = true;
+    options.Cookie.HttpOnly = true;
+});
+
+// Register required Identity services
+builder.Services.AddScoped<SignInManager<IdentityUser>>();
+builder.Services.AddScoped<UserManager<IdentityUser>>();
+
+// Configure Authentication
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-.AddJwtBearer(options =>{
+.AddJwtBearer(options => {
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
         {
-             var token = context.HttpContext.Session.GetString("JWTToken");
-                if (!string.IsNullOrEmpty(token))
-                {
-                    context.Token = token;
-                }
-                return Task.CompletedTask;
-            },
-            OnChallenge = context =>
+            var token = context.HttpContext.Session.GetString("JWTToken");
+            if (!string.IsNullOrEmpty(token))
             {
-                try
-                {
-                    var token = context.HttpContext.Session.GetString("JWTToken");
-                    if (string.IsNullOrEmpty(token))
-                    {
-                        context.HandleResponse();
-                        context.Response.Redirect("/Account/Login");
-                    }
-                    return Task.CompletedTask;
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine($"❌{e.Message}");
-                    // context.HandleResponse();
-                    context.Response.Redirect("/Account/Login");
-                    return Task.CompletedTask;
-                }
-                // Redirect to login when authentication fails
+                context.Token = token;
             }
-        };
-        options.TokenValidationParameters = new TokenValidationParameters
+            return Task.CompletedTask;
+        },
+        OnChallenge = context =>
         {
-            ValidateIssuer = true,
-            ValidateAudience = true,
-            ValidateLifetime = true,
-            ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["jwtSettings:Issuer"],
-            ValidAudience = builder.Configuration["jwtSettings:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:Secret"]))
-        };
+            if (string.IsNullOrEmpty(context.HttpContext.Session.GetString("JWTToken")))
+            {
+                context.HandleResponse();
+                context.Response.Redirect("/Account/Login");
+            }
+            return Task.CompletedTask;
+        }
+    };
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidAudience = jwtSettings["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.ASCII.GetBytes(secret))
+    };
 });
 
-// Enables MVC controllers and views.
+// Configure Services
 builder.Services.AddControllersWithViews();
 builder.Services.AddSession(options =>
 {
@@ -78,73 +103,65 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
+
+// Configure Authorization
 builder.Services.AddAuthorization(options => 
 {
+    //Role-based policies
     options.AddPolicy(PolicyNames.RequireAdmin, policy =>
         policy.RequireRole(UserRole.Admin.ToString()));
-        
     options.AddPolicy(PolicyNames.RequireLecturer, policy =>
         policy.RequireRole(UserRole.Lecturer.ToString()));
-        
     options.AddPolicy(PolicyNames.RequireStudent, policy =>
         policy.RequireRole(UserRole.Student.ToString()));
+
+    options.AddPolicy(PolicyNames.ManageUsers, policy =>
+        policy.Requirements.Add(new PermissionRequirement(PolicyNames.ManageUsers)));
+    options.AddPolicy(PolicyNames.ManageCourses, policy =>
+        policy.Requirements.Add(new PermissionRequirement(PolicyNames.ManageCourses)));
+    options.AddPolicy(PolicyNames.ManageCourses, policy =>
+        policy.Requirements.Add(new PermissionRequirement(PolicyNames.ManageCourses)));
+    options.AddPolicy(PolicyNames.ManageCourses, policy =>
+        policy.Requirements.Add(new PermissionRequirement(PolicyNames.ManageCourses)));
+    options.AddPolicy(PolicyNames.ManageCourses, policy =>
+        policy.Requirements.Add(new PermissionRequirement(PolicyNames.ManageCourses)));
+    
 });
-builder.Services.AddSession();
-builder.Services.AddSession();
-//register services
+
+// Register Services
+builder.Services.AddScoped< PermissionHandler>();
 builder.Services.AddScoped<IAuthService, AuthenticationService>();
 builder.Services.AddScoped<JwtService>();
-builder.Services.AddScoped<IStudentRepository, StudentRepository>(); 
+builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 // builder.Services.AddScoped<ILecturerRepository, LecturerRepository>();
 
-//configure DB
-builder.Services.AddDbContext<SchoolManagementAppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
-    b => b.MigrationsAssembly("SchoolManagementApp.MVC")));
-        //    .EnableSensitiveDataLogging()
-        //    .LogTo(Console.WriteLine, LogLevel.Information));
-
-builder.Services.AddDbContext<SchoolManagementAppDbContext>(options =>
-{
-    DbContextConfigurer.Configure(options, builder.Configuration);
-});
-
 var app = builder.Build();
 
-// If the application is running in production mode, enable exception handling and HTTP Strict Transport Security (HSTS).
+// Configure Middleware Pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
-}else{
+}
+else
+{
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
-//Middleware Configuration
-// Enables session support.
-app.UseSession();
-app.UseRouting();
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+app.UseRouting();
+app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseStaticFiles();
-// app.MapStaticAssets(); 
-// app.MapControllers();
-  
-// Configure Routes
+
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");
 
-// app.MapControllerRoute(
-//     name: "default",
-//     pattern: "{controller=Home}/{action=Index}/{id?}");
-
 app.Urls.Add("http://localhost:5000");
 app.Urls.Add("https://localhost:7001");
 
- 
-//Start the Application
 app.Run();

@@ -29,18 +29,14 @@
 @{
     ViewData["Title"] = "Create New Course";
 }
+
+@if (User.IsInRole("Admin") || User.IsInRole("Lecturer"))
+{
 @model Course
 
 <h2>@ViewData["Title"]</h2>
 
 <form asp-action="Create" method="post" class="form-horizontal">
-    @* <div class="form-group">
-        <label asp-for="Id" class="control-label col-md-2">Course Id</label>
-        <div class="col-md-10">
-            <input asp-for="Id" class="form-control" />
-            <span asp-validation-for="Id" class="text-danger"></span>
-        </div>
-    </div> *@
     <div class="form-group">
         <label asp-for="Name" class="control-label col-md-2">Course Name</label>
         <div class="col-md-10">
@@ -81,4 +77,5 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
 }

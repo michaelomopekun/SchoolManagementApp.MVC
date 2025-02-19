@@ -54,12 +54,17 @@ namespace SchoolManagementApp.MVC.Controllers
             }
 
         var token = await _authService.Login(model.Username, model.Password, model.Role);
+        var user = await _studentRepository.GetUserByUsernameAsync(model.Username);
 
         if(token==null)
         {
             ModelState.AddModelError("", "Invalid username or password");
             return View(model);
         }
+        
+        var permissions = await _authService.GetPermissionsForRole(model.Role.ToString());
+        var jwtToken = _jwtService.GenerateToken(user.Id, user.Username, model.Role.ToString(), permissions);
+
         //store token in session
         HttpContext.Session.SetString("JWTToken", token);
         HttpContext.Session.SetString("Role", model.Role.ToString());
@@ -92,7 +97,9 @@ namespace SchoolManagementApp.MVC.Controllers
                 return View(model);
             }
 
-            var token = _jwtService.GenerateToken(user.Id, user.Username);
+            var permissions = await _authService.GetPermissionsForRole(model.Role.ToString());
+            var token = _jwtService.GenerateToken(user.Id, user.Username,model.Role.ToString(),permissions);
+
             HttpContext.Session.SetString("JWTToken", token);
             HttpContext.Session.SetString("Role", model.Role.ToString());
 
@@ -141,7 +148,11 @@ namespace SchoolManagementApp.MVC.Controllers
                 return Unauthorized(new { message = "Invalid username or password" });
             }
 
-            return Ok(new { Token = token, Message = "Login successful" });
+            var user = await _studentRepository.GetUserByUsernameAsync(model.Username);
+            var permissions = await _authService.GetPermissionsForRole(model.Role.ToString());
+            var jwtToken = _jwtService.GenerateToken(user.Id, model.Username, model.Role.ToString(),permissions);
+
+            return Ok(new { Token = jwtToken, Message = "Login successful" });
         }
 
         [HttpPost("api/account/register")]
@@ -159,7 +170,8 @@ namespace SchoolManagementApp.MVC.Controllers
             }
             // var usernameExistsToken = await _authService.Register(model, model.Role);
 
-            var token = _jwtService.GenerateToken(user.Id, user.Username);
+            var permissions = await _authService.GetPermissionsForRole(model.Role.ToString());
+            var token = _jwtService.GenerateToken(user.Id, user.Username, model.Role.ToString(),permissions);
 
 
             return Ok(new { Token = token, Message = "Registration successful" });

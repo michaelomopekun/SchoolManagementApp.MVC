@@ -3,6 +3,8 @@
 }
 @model Course
 
+@if (User.IsInRole("Admin") || User.IsInRole("Lecturer"))
+{
 <div class="container mt-5">
     <h2>Edit Course</h2>
 
@@ -34,3 +36,4 @@
         </div>
     </form>
 </div>
+}

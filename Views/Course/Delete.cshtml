@@ -2,6 +2,8 @@
     ViewData["Title"] = "Delete Course";
 }
 
+@if (User.IsInRole("Admin") || User.IsInRole("Lecturer"))
+{
 @model Course
 
 <div class="container mt-5">
@@ -29,3 +31,4 @@
         </form>
     </div>
 </div>
+}

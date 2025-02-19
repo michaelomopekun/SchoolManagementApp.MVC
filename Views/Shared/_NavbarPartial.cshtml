@@ -1,0 +1,33 @@
+@if (User.IsInRole("Admin"))
+{
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle text-light" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">Admin</a>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">Dashboard</a></li>
+            <li><a class="dropdown-item" asp-controller="Admin" asp-action="ManageUsers">Manage Users</a></li>
+            <li><a class="dropdown-item" asp-controller="Admin" asp-action="ManageCourses">Manage Courses</a></li>
+        </ul>
+    </li>
+}
+else if (User.IsInRole("Lecturer"))
+{
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle text-light" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">Lecturer</a>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" asp-controller="Lecturer" asp-action="Dashboard">Dashboard</a></li>
+            <li><a class="dropdown-item" asp-controller="Lecturer" asp-action="ManageGrades">Manage Grades</a></li>
+            <li><a class="dropdown-item" asp-controller="Lecturer" asp-action="ViewCourses">My Courses</a></li>
+        </ul>
+    </li>
+}
+else if (User.IsInRole("Student"))
+{
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle text-light" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">Student</a>
+        <ul class="dropdown-menu">
+            <li><a class="dropdown-item" asp-controller="Student" asp-action="Dashboard">Dashboard</a></li>
+            <li><a class="dropdown-item" asp-controller="Student" asp-action="ViewGrades">My Grades</a></li>
+            <li><a class="dropdown-item" asp-controller="Student" asp-action="EnrollCourse">Enroll Course</a></li>
+        </ul>
+    </li>
+}

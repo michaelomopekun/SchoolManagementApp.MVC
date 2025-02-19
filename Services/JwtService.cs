@@ -26,25 +26,34 @@ public class JwtService
         }
     }
 
-    public string GenerateToken(int userId,string username)
+    public string GenerateToken(int userId,string username,string role, List<string> permissions)
     {
         if (string.IsNullOrEmpty(_secret) || _secret.Length < 32)
         {
             throw new InvalidOperationException("Decoded JWT secret key must be at least 32 characters long");
         }
+        var jwSettings = _config.GetSection("JwSettings");
+        var secretKey = jwSettings["Secret"];
 
-        // var jwtSettings = _config.GetSection("JwtSettings");
-        // var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Secret"]));
-        var Key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secret));
-        var credentials = new SigningCredentials(Key, SecurityAlgorithms.HmacSha256);
+        var Key = Encoding.UTF8.GetBytes(_secret);
+        var securityKey = new SymmetricSecurityKey(Key);
+        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
 
-        var claim = new[]
+        var claim = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
             new Claim(ClaimTypes.Name, username),
-            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+            new Claim(ClaimTypes.Role, role)
+            // new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
+
+        foreach(var permission in permissions)
+        {
+            claim.Add(new Claim("Permission",permission));
+        }
+
         var token = new JwtSecurityToken(
+                // Subject = new ClaimsIdentity(claim),
                 issuer: _config["jwtSettings:Issuer"],
                 audience : _config["jwtSettings:Audience"],
                 claims: claim,

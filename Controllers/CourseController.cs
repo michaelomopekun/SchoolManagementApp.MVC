@@ -21,11 +21,14 @@ namespace SchoolManagementApp.MVC.Controllers
         }
 
         [HttpGet("CourseList")]
+        [Authorize(Roles = "Admin,Lecturer,Student")]
         public async Task<IActionResult> CourseList()
         {
             var courses = await _courseService.GetAllCoursesAsync();
             return View(courses);
         }
+
+        [Authorize(Roles = "Admin,Lecturer")]
         public IActionResult Create()
         {
             return View();
@@ -42,6 +45,7 @@ namespace SchoolManagementApp.MVC.Controllers
         }
 
         [HttpPost("edit/{Id}")]
+        [Authorize(Roles = "Admin,Lecturer")]
         public async Task<IActionResult> Edit(int Id, Course course)
         {
             if(Id != course.Id)
@@ -56,6 +60,7 @@ namespace SchoolManagementApp.MVC.Controllers
             return  View(course);
         }
         [HttpGet("edit/{Id}")]
+        [Authorize(Roles = "Admin,Lecturer")]
         public async Task<IActionResult> Edit(int Id)
         {
             var course = await _courseRepository.GetCourseByIdAsync(Id);
@@ -66,6 +71,7 @@ namespace SchoolManagementApp.MVC.Controllers
             return View(course);
         }
         [HttpGet]
+        [Authorize(Roles = "Admin,Lecturer")]
         public async Task<IActionResult> Delete(int Id)
         {
             var course = await _courseRepository.GetCourseByIdAsync(Id);
@@ -76,7 +82,7 @@ namespace SchoolManagementApp.MVC.Controllers
             return  View(course);
         }
         [HttpPost, ActionName("Delete")]
-        // [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin,Lecturer")]
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {
             await _courseService.DeleteCourseAsync(Id);
