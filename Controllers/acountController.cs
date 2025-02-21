@@ -16,10 +16,8 @@ namespace SchoolManagementApp.MVC.Controllers
     {
         private readonly SchoolManagementAppDbContext _context;
         private readonly IStudentRepository _studentRepository;
-        // private readonly ILecturerRepository _lecturerRepository;
         private readonly IAuthService _authService;
         private readonly JwtService _jwtService;
-        // private readonly IStudentRepository _studentRepository;
 
         public AccountController(SchoolManagementAppDbContext context, IAuthService authService, JwtService jwtService, IStudentRepository studentRepository)
         {
@@ -72,11 +70,53 @@ namespace SchoolManagementApp.MVC.Controllers
         return RedirectToAction("Index", "Home");
         }
 
+        [HttpPost]
+        public IActionResult RoleSelect(string selectedRole)
+        {
+            if (string.IsNullOrEmpty(selectedRole))
+            {
+                Console.WriteLine("❌ Role is null");
+                TempData["Error"] = "Please select a role.";
+                return RedirectToAction("Login"); // Fix: Correct action name
+            }
+
+            if (!Enum.TryParse<UserRole>(selectedRole, out UserRole role))
+            {
+                Console.WriteLine("❌ Role is invalid");
+                TempData["Error"] = "Invalid role selected";
+                return RedirectToAction("Login");
+            }
+
+            // Store the parsed role
+                Console.WriteLine("✅ storing Role");
+
+            TempData["SelectedRole"] = role.ToString();
+            return RedirectToAction("Register", new { selectedRole = selectedRole });
+        }
+
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult Register()
+        public IActionResult Register(string selectedRole)
         {
-            return View();
+            if (string.IsNullOrEmpty(selectedRole))
+            {
+                 Console.WriteLine("❌ Role not selected");
+
+                return RedirectToAction("Login");
+            }
+
+            if (Enum.TryParse<UserRole>(selectedRole, out UserRole role))
+            {
+                Console.WriteLine($"✅ Creating RegisterViewModel with role: {role}");
+                var model = new RegisterViewModel
+                {
+                    Role = role
+                };
+                return View(model);
+            }
+
+            TempData["Error"] = "Invalid role selected";
+            return RedirectToAction("Login");
         }
 
         [HttpPost]
@@ -113,9 +153,6 @@ namespace SchoolManagementApp.MVC.Controllers
         {
             HttpContext.Session.Remove("JWTToken");
             HttpContext.Session.Clear();
-
-            // Response.Headers.Add("Cache-Control", "no-cache", "no-store", "must-revalidate");
-            // Response.Headers.Add("Pragma", "no-cache");
 
             if(Request.Headers["Accept"].Contains("application/json"))
             {

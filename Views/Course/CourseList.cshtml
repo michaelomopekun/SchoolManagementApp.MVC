@@ -34,7 +34,7 @@
                 {
                     <td>
                     <a asp-action="Details" asp-route-id="@course.Id" class="btn btn-info">Details</a>
-                    <a asp-action="Enroll" asp-route-id="@course.Id" class="btn btn-success">Enroll</a>
+                    <a asp-action="EnrollCourse" asp-controller="Course" asp-route-courseId="@course.Id" class="btn btn-success">Enroll</a>
                     </td>
                 }
 

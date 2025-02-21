@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SchoolManagementApp.MVC.Models;
 
 public class SchoolManagementAppDbContext : DbContext
 {
@@ -8,6 +9,8 @@ public class SchoolManagementAppDbContext : DbContext
     public DbSet<RolePermission> Role_Permissions { get; set; }
     public DbSet<Role> Roles { get; set; }
     public DbSet<Permission> Permissions { get; set; }
+    public DbSet<UserCourse> UserCourses { get; set; }
+    
 
 
     
@@ -26,6 +29,24 @@ public class SchoolManagementAppDbContext : DbContext
                 .HasConversion<string>()
                 .HasMaxLength(50)
                 .IsRequired();
+
+            // entity.Ignore(e => e.Course);
+        });
+
+        modelBuilder.Entity<UserCourse>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            entity.HasOne(uc => uc.User)
+                .WithMany(u => u.EnrolledCourses)
+                .HasForeignKey(uc => uc.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(uc => uc.Course)
+                .WithMany(c => c.EnrolledUsers)
+                .HasForeignKey(uc => uc.CourseId)
+                // .HasPrincipalKey(u => u.Id)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<RolePermission>(entity =>

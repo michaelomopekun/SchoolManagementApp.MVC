@@ -1,0 +1,43 @@
+@model IEnumerable<UserCourse>
+
+<h2>My Enrolled Courses</h2>
+
+@* @if (!Model.Any())
+{
+    <div class="alert alert-info">
+        You are not enrolled in any courses yet.
+    </div>
+}
+else *@
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Course Name</th>
+                <th>Enrollment Date</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var enrollment in Model)
+            {
+                <tr>
+                    <td>@enrollment.Course.Name</td>
+                    <td>@enrollment.EnrollmentDate.ToShortDateString()</td>
+                    <td>@enrollment.Status</td>
+                    <td>
+                        <a asp-action="CourseDetails" asp-route-id="@enrollment.CourseId" 
+                           class="btn btn-info btn-sm">Details</a>
+                        @if (enrollment.Status == EnrollmentStatus.Active)
+                        {
+                            <form asp-action="WithdrawCourse" asp-route-courseId="@enrollment.CourseId" method="post" 
+                            onsubmit="return confirm('Are you sure you want to withdraw from this course?');">
+                            <button type="submit" class="btn btn-warning">Withdraw</button>
+                            </form>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>

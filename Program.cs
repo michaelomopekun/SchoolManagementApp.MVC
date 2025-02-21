@@ -7,6 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using SchoolManagementApp.MVC;
 using SchoolManagementApp.MVC.Authorization;
 using SchoolManagementApp.MVC.Models;
+using SchoolManagementApp.MVC.Repository;
 using SchoolManagementApp.MVC.Services;
 
 // Create a new instance of the WebApplication builder.
@@ -135,7 +136,7 @@ builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<ICourseRepository, CourseRepository>();
 builder.Services.AddScoped<ICourseService, CourseService>();
-// builder.Services.AddScoped<ILecturerRepository, LecturerRepository>();
+builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
 
 var app = builder.Build();
 

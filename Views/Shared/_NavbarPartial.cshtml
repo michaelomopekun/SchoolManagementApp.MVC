@@ -5,7 +5,7 @@
         <ul class="dropdown-menu">
             <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">Dashboard</a></li>
             <li><a class="dropdown-item" asp-controller="Admin" asp-action="ManageUsers">Manage Users</a></li>
-            <li><a class="dropdown-item" asp-controller="Admin" asp-action="ManageCourses">Manage Courses</a></li>
+            <li><a class="dropdown-item" asp-controller="Course" asp-action="CourseList">Manage Courses</a></li>
         </ul>
     </li>
 }
@@ -27,7 +27,7 @@ else if (User.IsInRole("Student"))
         <ul class="dropdown-menu">
             <li><a class="dropdown-item" asp-controller="Student" asp-action="Dashboard">Dashboard</a></li>
             <li><a class="dropdown-item" asp-controller="Student" asp-action="ViewGrades">My Grades</a></li>
-            <li><a class="dropdown-item" asp-controller="Student" asp-action="EnrollCourse">Enroll Course</a></li>
+            <li><a class="dropdown-item" asp-controller="Course" asp-action="MyEnrollments">Enroll Course</a></li>
         </ul>
     </li>
 }

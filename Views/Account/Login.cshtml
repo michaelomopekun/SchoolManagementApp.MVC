@@ -41,7 +41,8 @@
 
                     <div class="mt-3 text-center">
                         <p>Don't have an account? 
-                            <a asp-controller="Account" asp-action="Register">Register here</a>
+                            @* <a asp-controller="Account" asp-action="Register">Register here</a> *@
+                            <a href="#" id="registerLink">Register here</a>
                         </p>
                     </div>
                 </div>
@@ -49,6 +50,53 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="roleSelectModal" tabindex="-1" aria-labelledby="roleSelectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="roleSelectModalLabel">Select Your Role</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form asp-controller="Account" asp-action="RoleSelect" method="post" id="roleSelectForm">
+                    <div class="mb-3">
+                        <label for="selectedRole" class="form-label">Role</label>
+                        <select class="form-select" id="selectedRole" name="selectedRole" required>
+                            <option value="">-- Select Role --</option>
+                            <option value="Student">Student</option>
+                            <option value="Lecturer">Lecturer</option>
+                            <option value="Admin">Admin</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Continue to Register</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            // Show modal when register link is clicked
+            $("#registerLink").click(function(e) {
+                e.preventDefault();
+                $("#roleSelectModal").modal('show');
+            });
+
+            // Handle form submission
+            $("#roleSelectForm").submit(function(e) {
+                var selectedRole = $("#selectedRole").val();
+                if (!selectedRole) {
+                    e.preventDefault();
+                    alert("Please select a role");
+                    
+                }
+            });
+        });
+    </script>
+}
 @* 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

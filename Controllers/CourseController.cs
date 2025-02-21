@@ -1,23 +1,27 @@
 
+using System.Linq.Expressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SchoolManagementApp.MVC.Models;
+using SchoolManagementApp.MVC.Repository;
 
 
 namespace SchoolManagementApp.MVC.Controllers
 {
-    // [ApiController]
-    // [Route("api/[controller]")]
-    // private readonly ICourseService _courseService;
     [Authorize]
     public class CourseController : Controller
     {
         private readonly ICourseService _courseService;
         private readonly ICourseRepository _courseRepository;
+        private readonly IStudentRepository _studentRepository;
+        private readonly IEnrollmentRepository _enrollmentRepository;
 
-        public CourseController(ICourseService courseService, ICourseRepository courseRepository)
+        public CourseController(ICourseService courseService, ICourseRepository courseRepository, IStudentRepository studentRepository,IEnrollmentRepository enrollmentRepository)
         {
             _courseService = courseService;
             _courseRepository = courseRepository;
+            _studentRepository = studentRepository;
+            _enrollmentRepository = enrollmentRepository;
         }
 
         [HttpGet("CourseList")]
@@ -88,6 +92,67 @@ namespace SchoolManagementApp.MVC.Controllers
             await _courseService.DeleteCourseAsync(Id);
             return RedirectToAction(nameof(CourseList));
             
+        }
+
+        public async Task<IActionResult> EnrollCourse(int courseId)
+        {
+        try{
+            var user = await _studentRepository.GetUserByUsernameAsync(User.Identity.Name);
+
+            if(await _enrollmentRepository.IsEnrolledAsync(user.Id, courseId))
+            {
+                TempData["Error"] = "You are already enrolled in this course.";
+                return RedirectToAction(nameof(CourseList));
+            }
+
+            var enrollment = new UserCourse
+            {
+                UserId = user.Id,
+                CourseId = courseId,
+                EnrollmentDate = DateTime.Now,
+                Status = EnrollmentStatus.Active
+            };
+
+            await _enrollmentRepository.EnrollAsync(enrollment);
+            TempData["Success"] = "You have enrolled in this course. ";
+            return RedirectToAction(nameof(MyEnrollments));
+        }catch(Exception ex)
+        {
+            TempData["Error"] = $"Failed to enroll in the course. Please try again :{ex}";
+            return RedirectToAction(nameof(CourseList));
+        }
+        }
+
+        public async Task<IActionResult> MyEnrollments()
+        {
+            var user = await _studentRepository.GetUserByUsernameAsync(User.Identity.Name);
+            var enrollments = await _enrollmentRepository.GetUserEnrollmentsAsync(user.Id);
+
+            return View(enrollments);
+        }
+
+        public async Task<IActionResult> WithdrawCourse(int courseId)
+        {
+            try{
+            var user = await _studentRepository.GetUserByUsernameAsync(User.Identity.Name);
+            // var usercourse = await _context.UserCourses.FindAsync(user.Id);
+            
+            var enrolled = await _enrollmentRepository.GetEnrollmentAsync(user.Id, courseId);
+
+            if (enrolled == null)
+            {
+                TempData["Error"] = "you are not enrolled in this course.";
+                return RedirectToAction(nameof(MyEnrollments));
+            }
+
+            await _enrollmentRepository.WithdrawAsync(user.Id,courseId);
+            TempData["Success"] = "Successfully withdrawn from the course.";
+
+            return RedirectToAction(nameof(MyEnrollments));
+            }catch{
+                TempData["Error"] = "Failed to withdraw from the course. please try again.";
+                return RedirectToAction(nameof(MyEnrollments));
+            }
         }
     }
 }
