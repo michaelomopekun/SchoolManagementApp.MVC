@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace SchoolManagementApp.MVC.Migrations
 {
     [DbContext(typeof(SchoolManagementAppDbContext))]
-    partial class SchoolManagementAppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250222173811_RenameGradeIdColumn")]
+    partial class RenameGradeIdColumn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -48,38 +51,6 @@ namespace SchoolManagementApp.MVC.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Course", (string)null);
-                });
-
-            modelBuilder.Entity("Grade", b =>
-                {
-                    b.Property<int>("GradeId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GradeId"));
-
-                    b.Property<string>("Comments")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("CourseId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("GradedDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<decimal>("Score")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<int>("userId")
-                        .HasColumnType("int");
-
-                    b.HasKey("GradeId");
-
-                    b.HasIndex("CourseId");
-
-                    b.HasIndex("userId");
-
-                    b.ToTable("Grades");
                 });
 
             modelBuilder.Entity("Permission", b =>
@@ -194,25 +165,6 @@ namespace SchoolManagementApp.MVC.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("Grade", b =>
-                {
-                    b.HasOne("Course", "Course")
-                        .WithMany()
-                        .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("User", "User")
-                        .WithMany()
-                        .HasForeignKey("userId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Course");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("RolePermission", b =>

@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SchoolManagementApp.MVC.Models;
 
 public class UserService : IUserService
 {
@@ -54,4 +55,13 @@ public class UserService : IUserService
             await _context.SaveChangesAsync();
         }
     }
+
+    public async Task<IEnumerable<User>> GetStudentsWithEnrollmentsAsync()
+{
+    return await _context.Users
+        .Include(u => u.EnrolledCourses)
+            .ThenInclude(uc => uc.Course)
+        .Where(u => u.Role == UserRole.Student)
+        .ToListAsync();
+}
 }

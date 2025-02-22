@@ -25,7 +25,7 @@ namespace SchoolManagementApp.MVC.Controllers
         }
 
         [HttpGet("CourseList")]
-        [Authorize(Roles = "Admin,Lecturer,Student")]
+        [Authorize(Roles = "Admin,Student")]
         public async Task<IActionResult> CourseList()
         {
             var courses = await _courseService.GetAllCoursesAsync();

@@ -1,0 +1,33 @@
+@model IEnumerable<Grade>
+
+@{
+    ViewData["Title"] = "My Grades";
+}
+
+<div class="container mt-4">
+    <h2>My Grades</h2>
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Course</th>
+                    <th>Score</th>
+                    <th>Comments</th>
+                    <th>Graded Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var grade in Model)
+                {
+                    <tr>
+                        <td>@grade.Course.Name</td>
+                        <td>@grade.Score%</td>
+                        <td>@grade.Comments</td>
+                        <td>@grade.GradedDate.ToLocalTime().ToString("g")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
