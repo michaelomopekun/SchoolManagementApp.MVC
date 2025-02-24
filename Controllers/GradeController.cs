@@ -20,10 +20,30 @@ namespace SchoolManagementApp.MVC.Controllers
         }
 
         [Authorize(Roles = "Student")]
-        public async Task<IActionResult> MyGrades()
+        [Route("Grade/MyGrade/{userId}")]
+        public async Task<IActionResult> MyGrades(int userId)
         {
-            var userId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
+            var currentUserId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
+    
+            // Security check: ensure users can only view their own grades
+            if (currentUserId != userId)
+            {
+                TempData["Error"] = "You can only view your own grades.";
+                return RedirectToAction("CourseList", "Course");
+            }
+
+            // Get user details
+            var user = await _userService.GetUserByIdAsync(userId);
+            if (user == null)
+            {
+                TempData["Error"] = "User not found.";
+                return RedirectToAction("MyEnrollments", "Course");
+            }
+
+            // Get grades with course information
             var grades = await _gradeService.GetUserGradesAsync(userId);
+            
+            ViewBag.User = user;
             return View(grades);
         }
 
@@ -38,10 +58,16 @@ namespace SchoolManagementApp.MVC.Controllers
         [Authorize(Roles = "Lecturer")]
         public async Task<IActionResult> AddGrade(int courseId, int userid)
         {
+            var isEnrolled = await _gradeService.IsUserEnrolledInCourse(userid, courseId);
+            if (!isEnrolled)
+            {
+                TempData["Error"] = "Student is not enrolled in this course.";
+                return RedirectToAction("ManageGrades", new { courseId });
+            }
             var grade = new Grade
             {
                 CourseId = courseId,
-                userId = userid,
+                UserId = userid,
                 GradedDate = DateTime.UtcNow
             };
             return View(grade);
@@ -51,11 +77,18 @@ namespace SchoolManagementApp.MVC.Controllers
         [Authorize(Roles = "Lecturer")]
         public async Task<IActionResult> AddGrade(Grade grade)
         {
-            if (ModelState.IsValid)
-            {
-                await _gradeService.AddGradeAsync(grade);
-                TempData["Success"] = "Grade added successfully";
-                return RedirectToAction(nameof(ManageGrades), new { courseId = grade.CourseId });
+        if (ModelState.IsValid)
+        {
+        try
+        {
+            await _gradeService.AddGradeAsync(grade);
+            TempData["Success"] = "Grade added successfully.";
+            return RedirectToAction("ManageGrades", new { courseId = grade.CourseId });
+        }
+        catch (Exception ex)
+        {
+            ModelState.AddModelError("", ex.Message);
+        }
             }
             return View(grade);
         }

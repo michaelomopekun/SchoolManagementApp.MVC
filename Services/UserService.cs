@@ -60,7 +60,7 @@ public class UserService : IUserService
 {
     return await _context.Users
         .Include(u => u.EnrolledCourses)
-            .ThenInclude(uc => uc.Course)
+        .ThenInclude(uc => uc.Course)
         .Where(u => u.Role == UserRole.Student)
         .ToListAsync();
 }

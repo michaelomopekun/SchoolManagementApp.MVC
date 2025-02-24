@@ -1,4 +1,3 @@
-
 using Microsoft.EntityFrameworkCore;
 
 public class GradeService : IGradeService
@@ -9,20 +8,57 @@ public class GradeService : IGradeService
     {
         _context = context;
     }
+
     public async Task AddGradeAsync(Grade grade)
     {
-        if(grade == null)
+        try
         {
-            throw new ArgumentNullException(nameof(grade));
+            if (grade == null)
+                throw new ArgumentNullException(nameof(grade));
+
+            // Verify student is enrolled
+            var isEnrolled = await _context.UserCourses
+                .AnyAsync(uc => uc.UserId == grade.UserId && 
+                               uc.CourseId == grade.CourseId);
+
+            if (!isEnrolled)
+                throw new InvalidOperationException("Student is not enrolled in this course");
+
+            var existingGrade = await _context.Grades
+                .FirstOrDefaultAsync(g => g.UserId == grade.UserId && 
+                                         g.CourseId == grade.CourseId);
+
+            if (existingGrade != null)
+            {
+                // Update existing grade
+                existingGrade.Score = grade.Score;
+                existingGrade.Comments = grade.Comments;
+                existingGrade.GradedDate = DateTime.UtcNow;
+
+                _context.Entry(existingGrade).State = EntityState.Modified;
+            }
+            else
+            {
+                // Add new grade
+                grade.GradedDate = DateTime.UtcNow;
+                await _context.Grades.AddAsync(grade);
+            }
+
+            var saveResult = await _context.SaveChangesAsync();
+            if (saveResult <= 0)
+                throw new InvalidOperationException("Failed to save grade to database");
         }
-        await _context.Grades.AddAsync(grade);
-        await _context.SaveChangesAsync();
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error managing grade: {ex.Message}");
+            throw;
+        }
     }
 
     public async Task DeleteGradeAsync(int gradeId)
     {
         var grade = await _context.Grades.FindAsync(gradeId);
-        if(grade == null)
+        if (grade != null)
         {
             _context.Grades.Remove(grade);
             await _context.SaveChangesAsync();
@@ -32,44 +68,57 @@ public class GradeService : IGradeService
     public async Task<IEnumerable<Grade>> GetCourseGradesAsync(int courseId)
     {
         return await _context.Grades
-            .Include(g=> g.Course)
-            .Include(g=> g.User)
-            .Where(g=> g.CourseId == courseId)
+            .Include(g => g.User)
+            .Include(g => g.Course)
+            .Where(g => g.CourseId == courseId)
             .ToListAsync();
     }
 
     public async Task<Grade?> GetGradeByIdAsync(int gradeId)
     {
         return await _context.Grades
-            .Include(g=> g.Course)
             .Include(g => g.User)
+            .Include(g => g.Course)
             .FirstOrDefaultAsync(g => g.GradeId == gradeId);
-        
     }
 
     public async Task<IEnumerable<Grade>> GetUserGradesAsync(int userId)
     {
         return await _context.Grades
-            .Include(g=>g.Course)
-            .Include(g=>g.User)
-            .Where(g=> g.userId ==userId)
+            .Include(g => g.Course)
+            .Include(g=> g.User)
+            .Where(g => g.UserId == userId)
+            .OrderByDescending(g => g.GradedDate)
             .ToListAsync();
     }
 
     public async Task UpdateGradeAsync(Grade grade)
     {
-        if(grade == null)
+        try
         {
-            throw new ArgumentNullException(nameof(grade));
+            var existingGrade = await _context.Grades
+                .FirstOrDefaultAsync(g => g.GradeId == grade.GradeId);
+
+            if (existingGrade != null)
+            {
+                existingGrade.Score = grade.Score;
+                existingGrade.Comments = grade.Comments;
+                existingGrade.GradedDate = DateTime.UtcNow;
+
+                _context.Entry(existingGrade).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+            }
         }
-        _context.Entry(grade).State = EntityState.Modified;
-        await _context.SaveChangesAsync();
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating grade: {ex.Message}");
+            throw;
+        }
     }
 
     public async Task<bool> IsUserEnrolledInCourse(int userId, int courseId)
-        {
-            return await _context.Users
-                .Include(u => u.EnrolledCourses)
-                .AnyAsync(u => u.Id == userId && u.EnrolledCourses.Any(c => c.Id == courseId));
-        }
+    {
+        return await _context.UserCourses
+            .AnyAsync(uc => uc.UserId == userId && uc.CourseId == courseId);
+    }
 }

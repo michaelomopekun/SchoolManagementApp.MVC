@@ -18,4 +18,5 @@ public class Course
     public string Description { get; set; } = string.Empty;
 
     public ICollection<UserCourse>? EnrolledUsers { get; set; } = new List<UserCourse>();
+    public virtual ICollection<Grade> Grades { get; set; }
 }

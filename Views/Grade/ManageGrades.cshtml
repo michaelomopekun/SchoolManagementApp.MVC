@@ -32,7 +32,7 @@
                     @foreach (var enrollment in student.EnrolledCourses)
                     {
                         var grade = ((List<Grade>)ViewBag.Grades)
-                            .FirstOrDefault(g => g.userId == student.Id && g.CourseId == enrollment.CourseId);
+                            .FirstOrDefault(g => g.UserId == student.Id && g.CourseId == enrollment.CourseId);
                         
                         <tr>
                             <td>@student.Username</td>

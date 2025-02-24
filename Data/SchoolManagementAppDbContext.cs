@@ -88,5 +88,30 @@ public class SchoolManagementAppDbContext : DbContext
             entity.ToTable("Course");
             entity.HasKey(e => e.Id);
         });
+
+        modelBuilder.Entity<Grade>(entity=>{
+            entity.ToTable("Grades");
+            entity.HasKey(e=>e.GradeId);
+
+            entity.HasOne(g=> g.User)
+                .WithMany(g=> g.Grades)
+                .HasForeignKey(u=> u.UserId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(g=> g.Course)
+                .WithMany(c=> c.Grades)
+                .HasForeignKey(g=> g.CourseId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.Property(g => g.Score)
+                .IsRequired()
+                .HasPrecision(5,2);
+
+            entity.Property(g=> g.GradedDate)
+                .IsRequired()
+                .HasDefaultValueSql("GETUTCDATE()");
+        });
     }
 }

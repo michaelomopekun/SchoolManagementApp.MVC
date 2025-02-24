@@ -7,27 +7,36 @@
 <div class="container mt-4">
     <h2>My Grades</h2>
 
-    <div class="table-responsive">
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Course</th>
-                    <th>Score</th>
-                    <th>Comments</th>
-                    <th>Graded Date</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var grade in Model)
-                {
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">
+            No grades available yet.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
                     <tr>
-                        <td>@grade.Course.Name</td>
-                        <td>@grade.Score%</td>
-                        <td>@grade.Comments</td>
-                        <td>@grade.GradedDate.ToLocalTime().ToString("g")</td>
+                        <th>Course</th>
+                        <th>Score</th>
+                        <th>Comments</th>
+                        <th>Graded Date</th>
                     </tr>
-                }
-            </tbody>
-        </table>
-    </div>
+                </thead>
+                <tbody>
+                    @foreach (var grade in Model)
+                    {
+                        <tr>
+                            <td>@grade.Course.Name</td>
+                            <td>@grade.Score%</td>
+                            <td>@(string.IsNullOrEmpty(grade.Comments) ? "-" : grade.Comments)</td>
+                            <td>@grade.GradedDate.ToLocalTime().ToString("g")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
 </div>

@@ -1,11 +1,26 @@
+using System.ComponentModel.DataAnnotations;
+
 public class Grade
 {
-    public int GradeId {get;set;}
-    public int userId{get;set;}
-    public User User{get;set;}
-    public int CourseId{get;set;}
-    public Course Course{get;set;}
-    public decimal Score{get;set;}
-    public string? Comments{get;set;}
-    public DateTime GradedDate {get;set;}
+    [Key]
+    public int GradeId { get; set; }
+
+    [Required(ErrorMessage = "Student is required")]
+    [Display(Name = "Student")]
+    public int UserId { get; set; }
+    public virtual User? User { get; set; }
+
+    [Required(ErrorMessage = "Course is required")]
+    [Display(Name = "Course")]
+    public int CourseId { get; set; }
+    public virtual Course? Course { get; set; }
+
+    [Required]
+    [Range(0, 100, ErrorMessage = "Score must be between 0 and 100")]
+    public decimal Score { get; set; }
+
+    [MaxLength(500)]
+    public string? Comments { get; set; }
+
+    public DateTime GradedDate { get; set; }
 }

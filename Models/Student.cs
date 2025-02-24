@@ -18,14 +18,8 @@ public class User : IUser
     [Required]
     public UserRole Role { get; set; }
 
-    // public int? CourseId { get; set; }
-
-    // [ForeignKey("CourseId")]
-    // public virtual Course? Course { get; set; }
     public virtual ICollection<UserCourse> EnrolledCourses { get; set; }
-    // public virtual ICollection<UserGrade> Grades { get; set; }
-    // public virtual ICollection<UserAttendance> Attendance { get; set; }
-    // public DateTime CreatedAt { get; set; }
+    public virtual ICollection<Grade> Grades { get; set; }
 }
 
 public class RolePermission
