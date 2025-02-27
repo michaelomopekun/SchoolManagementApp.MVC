@@ -24,3 +24,9 @@ public class Grade
 
     public DateTime GradedDate { get; set; }
 }
+public class GradeListViewModel
+{
+    public int CourseId { get; set; }
+    public string CourseName { get; set; }
+    public List<Grade> Grades { get; set; }
+}

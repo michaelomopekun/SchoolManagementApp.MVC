@@ -89,6 +89,7 @@ namespace SchoolManagementApp.MVC.Controllers
         [Authorize(Roles = "Admin,Lecturer")]
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {
+            // await 
             await _courseService.DeleteCourseAsync(Id);
             return RedirectToAction(nameof(CourseList));
             
@@ -109,7 +110,7 @@ namespace SchoolManagementApp.MVC.Controllers
             {
                 UserId = user.Id,
                 CourseId = courseId,
-                EnrollmentDate = DateTime.Now,
+                EnrollmentDate = DateTime.UtcNow,
                 Status = EnrollmentStatus.Active
             };
 
@@ -131,6 +132,7 @@ namespace SchoolManagementApp.MVC.Controllers
             return View(enrollments);
         }
 
+        [Authorize(Roles = "Student")]
         public async Task<IActionResult> WithdrawCourse(int courseId)
         {
             try{
@@ -145,10 +147,14 @@ namespace SchoolManagementApp.MVC.Controllers
                 return RedirectToAction(nameof(MyEnrollments));
             }
 
-            await _enrollmentRepository.WithdrawAsync(user.Id,courseId);
+            enrolled.Status = EnrollmentStatus.Withdrawn;
+            enrolled.WithdrawalDate = DateTime.UtcNow;
+            await _enrollmentRepository.UpdateEnrollmentAsync(enrolled);
+            // await _enrollmentRepository.WithdrawAsync(user.Id,courseId);
+            
             TempData["Success"] = "Successfully withdrawn from the course.";
-
             return RedirectToAction(nameof(MyEnrollments));
+
             }catch{
                 TempData["Error"] = "Failed to withdraw from the course. please try again.";
                 return RedirectToAction(nameof(MyEnrollments));

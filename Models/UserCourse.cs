@@ -25,12 +25,13 @@ namespace SchoolManagementApp.MVC.Models
 
         [ForeignKey("CourseId")]
         public virtual Course Course { get; set; }
+        public DateTime WithdrawalDate{get;set;}
     }
 
     public enum EnrollmentStatus
     {
-        Active,
-        Completed,
-        Withdrawn
+        Active= 1,
+        Completed= 2,
+        Withdrawn= 0
     }
 }

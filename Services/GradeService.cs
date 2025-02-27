@@ -71,6 +71,7 @@ public class GradeService : IGradeService
             .Include(g => g.User)
             .Include(g => g.Course)
             .Where(g => g.CourseId == courseId)
+            .AsNoTracking()
             .ToListAsync();
     }
 

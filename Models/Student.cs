@@ -18,8 +18,9 @@ public class User : IUser
     [Required]
     public UserRole Role { get; set; }
 
-    public virtual ICollection<UserCourse> EnrolledCourses { get; set; }
+    public virtual ICollection<UserCourse> EnrolledCourses { get; set; } = new List<UserCourse>();
     public virtual ICollection<Grade> Grades { get; set; }
+    public virtual ICollection<Course> TaughtCourses{ get; set; }
 }
 
 public class RolePermission

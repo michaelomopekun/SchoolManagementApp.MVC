@@ -1,0 +1,66 @@
+@model GradeListViewModel
+@{
+    ViewData["Title"] = $"Grades for {Model.CourseName}";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>@ViewData["Title"]</h2>
+        <a asp-controller="Course" 
+           asp-action="ManageGrades"
+           asp-route-courseId="@Model.CourseId"
+           class="btn btn-secondary">
+            <i class="bi bi-arrow-left"></i> Back to Courses
+        </a>
+    </div>
+
+    @if (!Model.Grades.Any())
+    {
+        <div class="alert alert-info">
+            No grades have been assigned for this course yet.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>StudentId</th>
+                        <th>Score</th>
+                        <th>Comments</th>
+                        <th>Graded Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var grade in Model.Grades.OrderByDescending(g => g.GradedDate))
+                    {
+                        <tr>
+                            <td>@grade.UserId</td>
+                            <td>@grade.Score%</td>
+                            <td>@(string.IsNullOrEmpty(grade.Comments) ? "-" : grade.Comments)</td>
+                            <td>@grade.GradedDate.ToLocalTime().ToString("g")</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a asp-action="EditGrade" 
+                                       asp-route-id="@grade.GradeId" 
+                                       class="btn btn-warning btn-sm">
+                                        <i class="bi bi-pencil"></i> Edit
+                                    </a>
+                                    <button type="button" 
+                                            class="btn btn-danger btn-sm" 
+                                            onclick="confirmDelete(@grade.GradeId)">
+                                        <i class="bi bi-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+
+@await Html.PartialAsync("_DeleteGradeModal")

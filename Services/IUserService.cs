@@ -1,3 +1,5 @@
+using SchoolManagementApp.MVC.Models;
+
 public interface IUserService
 {
     Task<IEnumerable<User>> GetAllUsersAsync();

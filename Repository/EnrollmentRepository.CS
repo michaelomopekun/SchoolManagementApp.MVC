@@ -17,17 +17,23 @@ public class EnrollmentRepository : IEnrollmentRepository
 
     public async Task<UserCourse?> GetEnrollmentAsync(int userId, int courseId)
     {
-        return await _context.UserCourses.FirstOrDefaultAsync(u => u.UserId == userId && u.CourseId == courseId);
+        return await _context.UserCourses.FirstOrDefaultAsync(u => u.UserId == userId && u.CourseId == courseId && u.Status == EnrollmentStatus.Active);
     }
 
     public async Task<IEnumerable<UserCourse>> GetUserEnrollmentsAsync(int userId)
     {
-        return await _context.UserCourses.Include(u => u.Course).Where(u => u.UserId  == userId).ToListAsync();
+        return await _context.UserCourses.Include(u => u.Course).Where(u => u.UserId  == userId && u.Status == EnrollmentStatus.Active).ToListAsync();
     }
 
     public async Task<bool> IsEnrolledAsync(int userId, int courseId)
     {
-        return await _context.UserCourses.AnyAsync(u => u.UserId == userId && u.CourseId == courseId);
+        return await _context.UserCourses.AnyAsync(u => u.UserId == userId && u.CourseId == courseId && u.Status == EnrollmentStatus.Active);
+    }
+
+    public async Task UpdateEnrollmentAsync(UserCourse enrollment)
+    {
+        _context.Entry(enrollment).State = EntityState.Modified;
+        await _context.SaveChangesAsync();
     }
 
     public async Task WithdrawAsync(int userId, int courseId)

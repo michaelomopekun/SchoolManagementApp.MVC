@@ -1,10 +1,19 @@
+using Microsoft.EntityFrameworkCore;
+using SchoolManagementApp.MVC.Models;
+using SchoolManagementApp.MVC.Repository;
 
 public class CourseService : ICourseService
 {
     private readonly ICourseRepository _courseRepository;
-    public CourseService(ICourseRepository courseRepository)
+    private readonly SchoolManagementAppDbContext _context;
+    private readonly IUserService _userService;
+    private readonly IEnrollmentRepository _enrollmentRepository;
+    public CourseService(ICourseRepository courseRepository,SchoolManagementAppDbContext context, IUserService userService, IEnrollmentRepository enrollmentRepository)
     {
         _courseRepository = courseRepository;
+        _context = context;
+        _userService = userService;
+        _enrollmentRepository = enrollmentRepository;
     }
     public async Task AddCourseAsync(Course course)
     {
@@ -31,9 +40,29 @@ public class CourseService : ICourseService
         return await _courseRepository.GetAllAsync();
     }
 
-    public async Task<Course> GetCourseAsync(int Id)
+    public async Task<Course> GetCourseAsync(int courseId)
     {
-        return await _courseRepository.GetCourseByIdAsync(Id);
+        Console.WriteLine($"🔍 Fetching course with courseId: {courseId}");
+        var course = await _context.Course
+            .FirstOrDefaultAsync(c => c.Id == courseId);
+        if (course == null)
+        {
+            Console.WriteLine($"❌❌ Course not found in database with courseId: {courseId}");
+        }
+        return course;
+    }
+
+    public async Task<List<UserCourse>> GetUserEnrolledCourseAsync()
+    {
+        var students = await _userService.GetStudentsWithEnrollmentsAsync();
+            var userEnrollments = new List<UserCourse>();
+
+            foreach (var student in students)
+            {
+                var enrolledCourses = await _enrollmentRepository.GetUserEnrollmentsAsync(student.Id);
+                userEnrollments.AddRange(enrolledCourses);
+            }
+            return userEnrollments;
     }
 
     public async Task UpdateCourseAsync(Course course)

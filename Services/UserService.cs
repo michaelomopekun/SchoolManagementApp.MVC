@@ -57,11 +57,29 @@ public class UserService : IUserService
     }
 
     public async Task<IEnumerable<User>> GetStudentsWithEnrollmentsAsync()
-{
-    return await _context.Users
-        .Include(u => u.EnrolledCourses)
-        .ThenInclude(uc => uc.Course)
-        .Where(u => u.Role == UserRole.Student)
-        .ToListAsync();
-}
+    {
+        var students = await _context.Users
+            .Where(u => u.Role == UserRole.Student)
+            .Include(u => u.EnrolledCourses)
+            .ThenInclude(ec => ec.Course)
+            .Where(u => u.EnrolledCourses.Any(ec => ec.Status == EnrollmentStatus.Active))
+            .AsNoTracking()
+            .ToListAsync();
+
+        // Debug logging
+        foreach (var student in students)
+        {
+            var activeEnrollments = student.EnrolledCourses?
+                .Count(e => e.Status == EnrollmentStatus.Active) ?? 0;
+            Console.WriteLine($"🔍 Student {student.Username}: Total enrollments = {student.EnrolledCourses?.Count ?? 0}, Active = {activeEnrollments}");
+            
+            foreach (var enrollment in student.EnrolledCourses ?? Enumerable.Empty<UserCourse>())
+            {
+                Console.WriteLine($"  📚 Course: {enrollment.Course?.Name}, Status: {enrollment.Status}");
+            }
+        }
+
+        return students;
+    }
+
 }

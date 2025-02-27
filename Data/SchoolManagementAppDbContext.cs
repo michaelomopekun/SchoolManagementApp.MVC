@@ -36,7 +36,7 @@ public class SchoolManagementAppDbContext : DbContext
 
         modelBuilder.Entity<UserCourse>(entity =>
         {
-            entity.HasKey(e => e.Id);
+            entity.HasKey(uc => new { uc.UserId, uc.CourseId });
             
             entity.HasOne(uc => uc.User)
                 .WithMany(u => u.EnrolledCourses)
