@@ -79,10 +79,11 @@ public class CourseService : ICourseService
 
     public async Task<List<UserCourse>> GetStudentEnrolledInCourseAsync(int courseId)
     {
-        var student = await _context.UserCourses
+        return await _context.UserCourses
+            .Include(uc => uc.User)
+            .Include(uc => uc.Course)
             .Where(uc => uc.CourseId == courseId && uc.Status == EnrollmentStatus.Active)
             .ToListAsync();
-        return(student);
     }
 
     public async Task<List<UserCourse>> GetUserEnrolledCourseAsync()

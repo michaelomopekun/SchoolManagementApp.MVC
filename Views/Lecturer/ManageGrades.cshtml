@@ -38,7 +38,7 @@
                         .FirstOrDefault(g => g.UserId == enrollment.UserId && g.CourseId == enrollment.CourseId);
 
                     <tr>
-                        <td>@enrollment.User.Username</td>
+                        <td>@enrollment.UserId</td>
                         <td>@enrollment.Course.Name</td>
                         <td>@(grade != null ? $"{grade.Score}%" : "Not Graded")</td>
                         <td>
@@ -53,7 +53,7 @@
                                     <a asp-action="DeleteGrade" 
                                        asp-route-id="@grade.GradeId" 
                                        class="btn btn-danger btn-sm">
-                                        <i class="bi bi-trash"></i> Delete
+                                        <i class="modal fade"></i> Delete
                                     </a>
                                 }
                                 else

@@ -118,8 +118,11 @@ namespace SchoolManagementApp.MVC.Controllers
         {
         try{
             var user = await _studentRepository.GetUserByUsernameAsync(User.Identity.Name);
+            var checkEnrollment =await _enrollmentRepository.IsEnrolledAsync(user.Id, courseId);
 
-            if(await _enrollmentRepository.IsEnrolledAsync(user.Id, courseId))
+                Console.WriteLine($"🔍🔍🔍🔍🔍🔍🔍🔍user enrollment check is: {checkEnrollment}");
+
+            if(checkEnrollment)
             {
                 TempData["Error"] = "You are already enrolled in this course.";
                 return RedirectToAction(nameof(CourseList));

@@ -56,7 +56,7 @@ namespace SchoolManagementApp.MVC.Controllers
         {
             
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
-            // Console.WriteLine($"🔍🔍🔍🔍 User ID claim: {userIdClaim.Value}");
+
             if (userIdClaim == null)
             {
                 Console.WriteLine($"🔍🔍 User ID claim not found.");
@@ -65,7 +65,7 @@ namespace SchoolManagementApp.MVC.Controllers
             }
 
             var lecturerId = int.Parse(userIdClaim.Value);
-            Console.WriteLine($"🔍🔍🔍🔍 User ID claim: {userIdClaim.Value}");
+
             var courses = await _courseService.GetCoursesByLecturerIdAsync(lecturerId);
 
             if (courses == null || !courses.Any())
@@ -78,6 +78,10 @@ namespace SchoolManagementApp.MVC.Controllers
 
             // var students = await _userService.GetStudentsByCoursesAsync(courseId);
             var students = await _courseService.GetStudentEnrolledInCourseAsync(courseId);
+            if (students == null)
+            {
+                students = new List<UserCourse>();
+            }
             var grades = await _gradeService.GetCourseGradesAsync(courseId);
             ViewBag.Grades = grades;
             ViewBag.CourseId = courseId;
