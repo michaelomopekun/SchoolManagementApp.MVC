@@ -173,7 +173,7 @@ namespace SchoolManagementApp.MVC.Controllers
             var grade = await _gradeService.GetCourseGradesAsync(courseId);
             if (grade == null)
             {
-                TempData["Error"] = "Course not graded.";
+                TempData["Error"] = "Course not yet graded.";
                 return RedirectToAction("CourseList", "Course");
             }
             var viewModel = new GradeListViewModel

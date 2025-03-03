@@ -4,10 +4,12 @@ namespace SchoolManagementApp.MVC.Models{
 public class GradeService : IGradeService
 {
     private readonly SchoolManagementAppDbContext _context;
+    private readonly ILogger<GradeService> _logger;
 
-    public GradeService(SchoolManagementAppDbContext context)
+    public GradeService(SchoolManagementAppDbContext context, ILogger<GradeService> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task AddGradeAsync(Grade grade)
@@ -68,12 +70,20 @@ public class GradeService : IGradeService
 
     public async Task<IEnumerable<Grade>> GetCourseGradesAsync(int courseId)
     {
-        return await _context.Grades
-            .Include(g => g.User)
-            .Include(g => g.Course)
-            .Where(g => g.CourseId == courseId)
-            .AsNoTracking()
-            .ToListAsync();
+        try
+            {
+                return await _context.Grades
+                    .Include(g => g.Course)
+                    .Include(g => g.User)
+                    .Where(g => g.CourseId == courseId)
+                    .OrderByDescending(g => g.GradedDate)
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,"🔍🔍🔍🔍🔍🔍🔍🔍 Error retrieving grades for user {UserId}");
+                throw;
+            }
     }
 
     public async Task<Grade?> GetGradeByIdAsync(int gradeId)

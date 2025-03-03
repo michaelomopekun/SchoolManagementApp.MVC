@@ -1,0 +1,61 @@
+@model IEnumerable<SchoolManagementApp.MVC.Models.Grade>
+@{
+    ViewData["Title"] = "My Grades";
+}
+
+<div class="container mt-4">
+    <h2>My Grades</h2>
+
+    @if (TempData["Info"] != null)
+    {
+        <div class="alert alert-info alert-dismissible fade show" role="alert">
+            @TempData["Info"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    @if (Model.Any())
+    {
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Course</th>
+                        <th>Grade</th>
+                        <th>Comments</th>
+                        <th>Graded Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var grade in Model)
+                    {
+                        <tr>
+                            <td>@grade.Course?.Name</td>
+                            <td>@grade.Score%</td>
+                            <td>@grade.Comments</td>
+                            <td>@grade.GradedDate.ToString("dd/MM/yyyy")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="mt-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Grade Summary</h5>
+                    <p>Average Grade: @Model.Average(g => g.Score)%</p>
+                    <p>Highest Grade: @Model.Max(g => g.Score)%</p>
+                    <p>Lowest Grade: @Model.Min(g => g.Score)%</p>
+                    <p>Total Courses Graded: @Model.Count()</p>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info">
+            No grades available yet.
+        </div>
+    }
+</div>

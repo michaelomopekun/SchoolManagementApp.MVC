@@ -18,6 +18,8 @@
                 <td>@course.Code</td>
                 <td>
                     <a asp-controller="Grade" asp-action="ManageGrades" asp-route-courseId="@course.Id" class="btn btn-primary">View Students</a>
+                    
+                    <a asp-controller="Grade" asp-action="GradeList" asp-route-courseId="@course.Id" class="btn btn-secondary">View Graded List</a>
                 </td>
             </tr>
         }
