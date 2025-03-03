@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using SchoolManagementApp.MVC.Models;
 using SchoolManagementApp.MVC.Repository;
 
@@ -8,12 +9,16 @@ public class CourseService : ICourseService
     private readonly SchoolManagementAppDbContext _context;
     private readonly IUserService _userService;
     private readonly IEnrollmentRepository _enrollmentRepository;
-    public CourseService(ICourseRepository courseRepository,SchoolManagementAppDbContext context, IUserService userService, IEnrollmentRepository enrollmentRepository)
+    private readonly ILogger<CourseService> _logger;
+
+    public CourseService(ICourseRepository courseRepository, SchoolManagementAppDbContext context, IUserService userService, IEnrollmentRepository enrollmentRepository, ILogger<CourseService> logger)
     {
         _courseRepository = courseRepository;
-        _context = context;
+        _enrollmentRepository = enrollmentRepository;
+        _logger = logger;
         _userService = userService;
         _enrollmentRepository = enrollmentRepository;
+        _context = context;
     }
     public async Task AddCourseAsync(Course course)
     {
@@ -60,6 +65,7 @@ public class CourseService : ICourseService
         return await _courseRepository.GetAllAsync();
     }
 
+
     public async Task<Course> GetCourseAsync(int courseId)
     {
         Console.WriteLine($"🔍 Fetching course with courseId: {courseId}");
@@ -86,6 +92,23 @@ public class CourseService : ICourseService
             .ToListAsync();
     }
 
+    public async Task<int> GetTotalStudentsForLecturerAsync(int lecturerId)
+    {
+        try
+        {
+            return await _context.UserCourses
+                .Include(uc => uc.Course)
+                .Where(uc => uc.Course.LecturerId == lecturerId && uc.Status == EnrollmentStatus.Active)
+                .Select(uc => uc.UserId)
+                .Distinct()
+                .CountAsync();
+        }catch (Exception ex)
+        {
+            throw new ArgumentException($"Error {ex} getting total students for lecturer {lecturerId}");
+            // throw;
+        }
+    }
+
     public async Task<List<UserCourse>> GetUserEnrolledCourseAsync()
     {
         var students = await _userService.GetStudentsWithEnrollmentsAsync();
@@ -103,6 +126,4 @@ public class CourseService : ICourseService
     {
         await _courseRepository.UpdateAsync(course);
     }
-
-
 }

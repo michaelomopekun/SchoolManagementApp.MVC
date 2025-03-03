@@ -1,0 +1,105 @@
+@model SchoolManagementApp.MVC.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Lecturer Dashboard";
+}
+
+<div class="container mt-4">
+    <h2>Welcome, @User.Identity?.Name!</h2>
+
+    <div class="row mt-4">
+        <!-- Courses Overview Card -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-book"></i> My Courses
+                    </h5>
+                    <h3 class="display-4">@Model.TotalCourses</h3>
+                    <p class="text-muted">Courses you're teaching</p>
+                    <a asp-controller="Lecturer" asp-action="MyCourses" class="btn btn-primary">
+                        View Courses
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Students Overview Card -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-people"></i> Total Students
+                    </h5>
+                    <h3 class="display-4">@Model.TotalStudents</h3>
+                    <p class="text-muted">Enrolled in your courses</p>
+                    <a asp-controller="Lecturer" asp-action="MyCourses" class="btn btn-primary">
+                        View Students
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Grading Overview Card -->
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">
+                        <i class="bi bi-check2-circle"></i> Grading Status
+                    </h5>
+                    <h3 class="display-4">@Model.GradedStudents/@Model.TotalStudents</h3>
+                    <p class="text-muted">Students graded</p>
+                    <div class="progress mb-3">
+                        <div class="progress-bar" role="progressbar" 
+                             style="width: @(Model.GradingProgress)%"
+                             aria-valuenow="@Model.GradingProgress" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            @Model.GradingProgress%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Recent Activity</h5>
+                    @if (Model.RecentGrades?.Any() == true)
+                    {
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Student</th>
+                                        <th>Course</th>
+                                        <th>Grade</th>
+                                        <th>Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var grade in Model.RecentGrades)
+                                    {
+                                        <tr>
+                                            <td>@grade.User?.Username</td>
+                                            <td>@grade.Course?.Name</td>
+                                            <td>@grade.Score%</td>
+                                            <td>@grade.GradedDate.ToLocalTime().ToString("g")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No recent grading activity</p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

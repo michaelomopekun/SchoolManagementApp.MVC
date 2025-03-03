@@ -133,5 +133,26 @@ public class GradeService : IGradeService
         return await _context.UserCourses
             .AnyAsync(uc => uc.UserId == userId && uc.CourseId == courseId);
     }
+
+    public async Task<int> GetTotalGradedStudentsForLecturerAsync(int lecturerId)
+    {
+        return await _context.Grades
+            .Include(g => g.Course)
+            .Where(g => g.Course.LecturerId == lecturerId)
+            .Select(g => g.UserId)
+            .Distinct()
+            .CountAsync();
+    }
+
+    public async Task<IEnumerable<Grade>> GetRecentGradesForLecturerAsync(int lecturerId, int count)
+    {
+        return await _context.Grades
+            .Include(g => g.Course)
+            .Include(g => g.User)
+            .Where(g => g.Course.LecturerId == lecturerId)
+            .OrderByDescending(g => g.GradedDate)
+            .Take(count)
+            .ToListAsync();
+}
 }
 }

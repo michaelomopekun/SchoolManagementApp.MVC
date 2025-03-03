@@ -25,9 +25,29 @@ namespace SchoolManagementApp.MVC.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin,Lecturer")]
-        public IActionResult Dashboard()
+        public async Task<IActionResult> Dashboard()
         {
-            return View();
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return RedirectToAction("Index", "Home");
+            }
+
+            var lecturerId = int.Parse(userIdClaim.Value);
+            var courses = await _courseService.GetCoursesByLecturerIdAsync(lecturerId);
+            var totalStudents = await _courseService.GetTotalStudentsForLecturerAsync(lecturerId);
+            var gradedStudents = await _gradeService.GetTotalGradedStudentsForLecturerAsync(lecturerId);
+            var recentGrades = await _gradeService.GetRecentGradesForLecturerAsync(lecturerId, 5);
+
+            var viewModel = new DashboardViewModel
+            {
+                TotalCourses = courses.Count(),
+                TotalStudents = totalStudents,
+                GradedStudents = gradedStudents,
+                RecentGrades = recentGrades
+            };
+
+            return View(viewModel);
         }
 
         [HttpGet]
