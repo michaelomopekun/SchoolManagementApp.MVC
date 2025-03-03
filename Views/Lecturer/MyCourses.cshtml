@@ -1,0 +1,25 @@
+@model IEnumerable<SchoolManagementApp.MVC.Models.Course>
+
+<h2>My Courses</h2>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Course Name</th>
+            <th>Course Code</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var course in Model)
+        {
+            <tr>
+                <td>@course.Name</td>
+                <td>@course.Code</td>
+                <td>
+                    <a asp-controller="Grade" asp-action="ManageGrades" asp-route-courseId="@course.Id" class="btn btn-primary">View Students</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

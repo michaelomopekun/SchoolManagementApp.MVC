@@ -8,6 +8,7 @@ namespace SchoolManagementApp.MVC.Controllers
     public class AdminController : Controller
     {
         private readonly IUserService _userService;
+        private readonly ICourseService _courseService;
 
         public AdminController(IUserService userService)
         {
@@ -74,10 +75,36 @@ namespace SchoolManagementApp.MVC.Controllers
             return RedirectToAction(nameof(ManageUsers));
         }
 
-        [HttpGet]
-        public IActionResult ManageCourses()
+        public async Task<IActionResult> ManageStudents()
         {
-            return View();
+            var students = await _userService.GetAllStudentsAsync();
+            return View(students);
+        }
+
+        public async Task<IActionResult> ManageLecturers()
+        {
+            var lecturers = await _userService.GetAllLecturerAsync();
+            return View(lecturers);
+        }
+
+        public async Task<IActionResult> ManageAdmin()
+        {
+            var lecturers = await _userService.GetAllAdminsAsync();
+            return View(lecturers);
+        }
+
+        public async Task<IActionResult> AssignCourse(int LecturerId)
+        {
+            var courses = await _courseService.GetAllCoursesAsync();
+            ViewBag.LecturerId = LecturerId;
+            return View(courses);
+        }
+
+        public async Task<IActionResult> AssignCourse(int LecturerId, List<int> CourseId)
+        {
+            await _courseService.AssigeCourseToLecturerAsync(LecturerId, CourseId);
+            TempData["Success"] = "Course assigned successfully";
+            return RedirectToAction(nameof(ManageLecturers));
         }
     }
 }

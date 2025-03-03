@@ -1,5 +1,6 @@
 @{
     ViewData["Title"] = "Available Courses";
+    var courses = ViewBag.Courses as IEnumerable<dynamic>;
 }
 
 <h2>Courses</h2>
@@ -11,6 +12,7 @@
             <th>Description</th>
             <th>Code</th>
             <th>credit</th>
+            <th>Lecturer</th>
 
         </tr>
     </thead>
@@ -22,8 +24,9 @@
                 <td>@course.Description</td>
                 <td>@course.Code</td>
                 <td>@course.Credit</td>
+                <td>@course.Lecturer?.Username</td>
 
-                @if (User.IsInRole("Admin") || User.IsInRole("Lecturer"))
+                @if (User.IsInRole("Admin"))
                 {
                 <td>
                     <a asp-action="Edit" asp-route-id="@course.Id" class="btn btn-primary">Edit</a>
@@ -40,6 +43,7 @@
 
             </tr>
         }
+        
     </tbody>
 </table>
 @if (User.IsInRole("Admin") || User.IsInRole("Lecturer"))

@@ -139,6 +139,8 @@ builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IGradeService, GradeService>();
+// builder.Services.AddScoped<IGradeRepository, GradeRepository>();
+
 
 var app = builder.Build();
 

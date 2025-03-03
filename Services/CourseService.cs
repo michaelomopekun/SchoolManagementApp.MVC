@@ -19,10 +19,30 @@ public class CourseService : ICourseService
     {
         if(course.Name==null)
         {
-        throw new ArgumentException("Course Name can not be null");
+            Console.WriteLine($"❌❌ AddCourseAsync Course name is null");
+            throw new ArgumentException("Course Name can not be null");
         
         }
+
+        Console.WriteLine($"✅✅ AddCourseAsync Got course name {course.Name}");
         await _courseRepository.AddAsync(course);
+    }
+
+    public async Task AssigeCourseToLecturerAsync(int lecturerId, List<int> couresIds)
+    {
+       var lecturer = await _context.Users.FindAsync(lecturerId);
+        if(lecturer == null || UserRole.Lecturer != lecturer.Role)
+        {
+            throw new Exception("Lecturer not found");
+        }
+
+        var courses = await _context.Course.Where(c => couresIds.Contains(c.Id)).ToListAsync();
+        foreach (var course in courses)
+        {
+            course.LecturerId = lecturerId;
+            // await _courseRepository.UpdateAsync(course);
+        }
+        await _context.SaveChangesAsync();
     }
 
     public async Task DeleteCourseAsync(int Id)
@@ -52,6 +72,19 @@ public class CourseService : ICourseService
         return course;
     }
 
+    public async Task<IEnumerable<Course>> GetCoursesByLecturerIdAsync(int lecturerId)
+    {
+        return await _context.Course.Where(c => c.LecturerId == lecturerId).ToListAsync();
+    }
+
+    public async Task<List<UserCourse>> GetStudentEnrolledInCourseAsync(int courseId)
+    {
+        var student = await _context.UserCourses
+            .Where(uc => uc.CourseId == courseId && uc.Status == EnrollmentStatus.Active)
+            .ToListAsync();
+        return(student);
+    }
+
     public async Task<List<UserCourse>> GetUserEnrolledCourseAsync()
     {
         var students = await _userService.GetStudentsWithEnrollmentsAsync();
@@ -69,4 +102,6 @@ public class CourseService : ICourseService
     {
         await _courseRepository.UpdateAsync(course);
     }
+
+
 }

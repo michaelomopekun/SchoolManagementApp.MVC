@@ -15,7 +15,7 @@ else if (User.IsInRole("Lecturer"))
         <a class="nav-link dropdown-toggle text-light" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">Lecturer</a>
         <ul class="dropdown-menu">
             <li><a class="dropdown-item" asp-controller="Lecturer" asp-action="Dashboard">Dashboard</a></li>
-            <li><a class="dropdown-item" asp-controller="Course" asp-action="CourseList">My Courses</a></li>
+            <li><a class="dropdown-item" asp-controller="Lecturer" asp-action="MyCourses">My Courses</a></li>
             <li><a class="dropdown-item" asp-controller="Grade" asp-action="ManageGrades">Manage Grades</a></li>
             <li><a class="dropdown-item" asp-controller="Grade" asp-action="GradeList">GradedList</a></li>
             @* <li><a class="dropdown-item" asp-controller="Grade" asp-action="GradeList">GradedList</a></li> *@

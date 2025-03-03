@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using SchoolManagementApp.MVC.Models;
 
+namespace SchoolManagementApp.MVC.Models{
 public class User : IUser
 {
     [Key]
@@ -57,4 +58,5 @@ public class Role
     public string role_name { get; set; }
 
     public virtual ICollection<RolePermission> RolePermissions { get; set; }
+}
 }

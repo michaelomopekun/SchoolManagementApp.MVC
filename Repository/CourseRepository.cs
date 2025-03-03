@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-
+namespace SchoolManagementApp.MVC.Models{
 public class CourseRepository : ICourseRepository
 {
     private readonly SchoolManagementAppDbContext _context;
@@ -39,4 +39,5 @@ public CourseRepository(SchoolManagementAppDbContext context){
             _context.Course.Update(course);
             await _context.SaveChangesAsync();
     }
+}
 }

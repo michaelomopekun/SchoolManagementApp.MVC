@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
+namespace SchoolManagementApp.MVC.Models{
 public class GradeService : IGradeService
 {
     private readonly SchoolManagementAppDbContext _context;
@@ -122,4 +123,5 @@ public class GradeService : IGradeService
         return await _context.UserCourses
             .AnyAsync(uc => uc.UserId == userId && uc.CourseId == courseId);
     }
+}
 }

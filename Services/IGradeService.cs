@@ -1,3 +1,4 @@
+namespace SchoolManagementApp.MVC.Models{
 public interface IGradeService
 {
     Task<IEnumerable<Grade>> GetUserGradesAsync(int userId);
@@ -7,4 +8,5 @@ public interface IGradeService
     Task DeleteGradeAsync(int gradeId);
     Task<IEnumerable<Grade>> GetCourseGradesAsync(int courseId);
     Task<bool> IsUserEnrolledInCourse(int userId, int courseId);
+}
 }

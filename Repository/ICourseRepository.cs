@@ -1,3 +1,4 @@
+namespace SchoolManagementApp.MVC.Models{
 public interface ICourseRepository
 {
     Task<Course> GetCourseByIdAsync(int Id);
@@ -6,4 +7,5 @@ public interface ICourseRepository
     Task UpdateAsync (Course course);
     Task<List<Course>> GetAllAsync();
     // Task DeleteAsync(Course course);
+}
 }

@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace SchoolManagementApp.MVC.Migrations
 {
     [DbContext(typeof(SchoolManagementAppDbContext))]
-    [Migration("20250222174400_AddGradesTable")]
-    partial class AddGradesTable
+    [Migration("20250228082059_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -44,11 +44,16 @@ namespace SchoolManagementApp.MVC.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("LecturerId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("LecturerId");
 
                     b.ToTable("Course", (string)null);
                 });
@@ -62,27 +67,31 @@ namespace SchoolManagementApp.MVC.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("GradeId"));
 
                     b.Property<string>("Comments")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("CourseId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("GradedDate")
-                        .HasColumnType("datetime2");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
 
                     b.Property<decimal>("Score")
-                        .HasColumnType("decimal(18,2)");
+                        .HasPrecision(5, 2)
+                        .HasColumnType("decimal(5,2)");
 
-                    b.Property<int>("userId")
+                    b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("GradeId");
 
                     b.HasIndex("CourseId");
 
-                    b.HasIndex("userId");
+                    b.HasIndex("UserId");
 
-                    b.ToTable("Grades");
+                    b.ToTable("Grades", (string)null);
                 });
 
             modelBuilder.Entity("Permission", b =>
@@ -142,11 +151,8 @@ namespace SchoolManagementApp.MVC.Migrations
 
             modelBuilder.Entity("SchoolManagementApp.MVC.Models.UserCourse", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("UserId")
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("CourseId")
                         .HasColumnType("int");
@@ -154,17 +160,18 @@ namespace SchoolManagementApp.MVC.Migrations
                     b.Property<DateTime>("EnrollmentDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
+                    b.Property<DateTime>("WithdrawalDate")
+                        .HasColumnType("datetime2");
 
-                    b.HasKey("Id");
+                    b.HasKey("UserId", "CourseId");
 
                     b.HasIndex("CourseId");
-
-                    b.HasIndex("UserId");
 
                     b.ToTable("UserCourses");
                 });
@@ -199,18 +206,29 @@ namespace SchoolManagementApp.MVC.Migrations
                     b.ToTable("Users");
                 });
 
+            modelBuilder.Entity("Course", b =>
+                {
+                    b.HasOne("User", "Lecturer")
+                        .WithMany("TaughtCourses")
+                        .HasForeignKey("LecturerId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Lecturer");
+                });
+
             modelBuilder.Entity("Grade", b =>
                 {
                     b.HasOne("Course", "Course")
-                        .WithMany()
+                        .WithMany("Grades")
                         .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("User", "User")
-                        .WithMany()
-                        .HasForeignKey("userId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .WithMany("Grades")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Course");
@@ -259,6 +277,8 @@ namespace SchoolManagementApp.MVC.Migrations
             modelBuilder.Entity("Course", b =>
                 {
                     b.Navigation("EnrolledUsers");
+
+                    b.Navigation("Grades");
                 });
 
             modelBuilder.Entity("Permission", b =>
@@ -274,6 +294,10 @@ namespace SchoolManagementApp.MVC.Migrations
             modelBuilder.Entity("User", b =>
                 {
                     b.Navigation("EnrolledCourses");
+
+                    b.Navigation("Grades");
+
+                    b.Navigation("TaughtCourses");
                 });
 #pragma warning restore 612, 618
         }

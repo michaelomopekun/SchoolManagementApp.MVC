@@ -6,7 +6,7 @@
     ViewData["Title"] = "Manage Grades";
 }
 
-<div class="container mt-4">
+<div class="container mt-4" >
 
     <div class="alert alert-info">
         <p>Total Enrollments: @Model.Count(s => s.Status == EnrollmentStatus.Active)</p>
@@ -38,7 +38,7 @@
                         .FirstOrDefault(g => g.UserId == enrollment.UserId && g.CourseId == enrollment.CourseId);
 
                     <tr>
-                        <td>@enrollment.UserId</td>
+                        <td>@enrollment.User.Username</td>
                         <td>@enrollment.Course.Name</td>
                         <td>@(grade != null ? $"{grade.Score}%" : "Not Graded")</td>
                         <td>
@@ -53,7 +53,7 @@
                                     <a asp-action="DeleteGrade" 
                                        asp-route-id="@grade.GradeId" 
                                        class="btn btn-danger btn-sm">
-                                        <i class="modal fade"></i> Delete
+                                        <i class="bi bi-trash"></i> Delete
                                     </a>
                                 }
                                 else

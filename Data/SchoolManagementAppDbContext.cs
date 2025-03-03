@@ -4,19 +4,14 @@ using SchoolManagementApp.MVC.Models;
 public class SchoolManagementAppDbContext : DbContext
 {
     public DbSet<User> Users { get; set; }
-    // public DbSet<Lecturer> Lecturer { get; set; }
     public DbSet<Course> Course { get; set; }
     public DbSet<RolePermission> Role_Permissions { get; set; }
     public DbSet<Role> Roles { get; set; }
     public DbSet<Permission> Permissions { get; set; }
     public DbSet<UserCourse> UserCourses { get; set; }
-    public DbSet<Grade> Grades {get;set;}
-    
+    public DbSet<Grade> Grades { get; set; }
 
-
-    
-
-    public SchoolManagementAppDbContext(DbContextOptions<SchoolManagementAppDbContext> options) : base(options){}
+    public SchoolManagementAppDbContext(DbContextOptions<SchoolManagementAppDbContext> options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -30,14 +25,12 @@ public class SchoolManagementAppDbContext : DbContext
                 .HasConversion<string>()
                 .HasMaxLength(50)
                 .IsRequired();
-
-            // entity.Ignore(e => e.Course);
         });
 
         modelBuilder.Entity<UserCourse>(entity =>
         {
             entity.HasKey(uc => new { uc.UserId, uc.CourseId });
-            
+
             entity.HasOne(uc => uc.User)
                 .WithMany(u => u.EnrolledCourses)
                 .HasForeignKey(uc => uc.UserId)
@@ -46,15 +39,19 @@ public class SchoolManagementAppDbContext : DbContext
             entity.HasOne(uc => uc.Course)
                 .WithMany(c => c.EnrolledUsers)
                 .HasForeignKey(uc => uc.CourseId)
-                // .HasPrincipalKey(u => u.Id)
                 .OnDelete(DeleteBehavior.Restrict);
+            
+            // entity.HasOne(uc => uc.User)
+            //     .WithMany(u => u.TaughtCourses)
+            //     .HasForeignKey(uc => uc.LecturerId)
+            //     .OnDelete(DeleteBehavior.Restrict);
         });
 
         modelBuilder.Entity<RolePermission>(entity =>
         {
             entity.ToTable("Role_Permissions"); // Match your existing table name
             entity.HasKey(rp => new { rp.role_id, rp.permission_id });
-            
+
             entity.HasOne(rp => rp.Role)
                 .WithMany(r => r.RolePermissions)
                 .HasForeignKey(rp => rp.role_id)
@@ -83,33 +80,42 @@ public class SchoolManagementAppDbContext : DbContext
         });
 
         // Course configuration
-        modelBuilder.Entity<Course>(entity => 
+        modelBuilder.Entity<Course>(entity =>
         {
             entity.ToTable("Course");
             entity.HasKey(e => e.Id);
+            entity.Property(l => l.LecturerId).IsRequired();
+
+            entity.HasOne(c => c.Lecturer)
+                .WithMany(l => l.TaughtCourses)
+                .HasForeignKey(c => c.LecturerId)
+                .IsRequired()
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
-        modelBuilder.Entity<Grade>(entity=>{
+        // Grade configuration
+        modelBuilder.Entity<Grade>(entity =>
+        {
             entity.ToTable("Grades");
-            entity.HasKey(e=>e.GradeId);
+            entity.HasKey(e => e.GradeId);
 
-            entity.HasOne(g=> g.User)
-                .WithMany(g=> g.Grades)
-                .HasForeignKey(u=> u.UserId)
+            entity.HasOne(g => g.User)
+                .WithMany(u => u.Grades)
+                .HasForeignKey(g => g.UserId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
 
-            entity.HasOne(g=> g.Course)
-                .WithMany(c=> c.Grades)
-                .HasForeignKey(g=> g.CourseId)
+            entity.HasOne(g => g.Course)
+                .WithMany(c => c.Grades)
+                .HasForeignKey(g => g.CourseId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.Property(g => g.Score)
                 .IsRequired()
-                .HasPrecision(5,2);
+                .HasPrecision(5, 2);
 
-            entity.Property(g=> g.GradedDate)
+            entity.Property(g => g.GradedDate)
                 .IsRequired()
                 .HasDefaultValueSql("GETUTCDATE()");
         });

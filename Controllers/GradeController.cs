@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SchoolManagementApp.MVC.Models;
@@ -53,37 +54,59 @@ namespace SchoolManagementApp.MVC.Controllers
         [Authorize(Roles = "Lecturer")]
         public async Task<IActionResult> ManageGrades(int courseId)
         {
-            Console.WriteLine($"🔍 Received courseId: {courseId}");
-
-            var students = await _userService.GetStudentsWithEnrollmentsAsync();
-            var userEnrollments = await _courseService.GetUserEnrolledCourseAsync();
-
-            // Debug logging
-            Console.WriteLine($"🔍 Course ID: {courseId}");
-            Console.WriteLine($"🔍 Total students: {students.Count()}");
-            Console.WriteLine($"🔍 enrollments: {userEnrollments.Count()}");
-
-            // var studentsInCourse = userEnrollments.Where(e =>
-            //     e.Status == EnrollmentStatus.Active).ToList();
-
-            // foreach(var student in userEnrollments)
-            // {
-            //     Console.WriteLine($"🔍🔍 Student: {student.User.Username}");
-            // }
-
-            var grades = await _gradeService.GetCourseGradesAsync(courseId);
-            Console.WriteLine($"🔍 Grades for course: {grades.Count()}");
-
-            ViewBag.Grades = grades;
-            foreach (var grade in grades)
+            
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            // Console.WriteLine($"🔍🔍🔍🔍 User ID claim: {userIdClaim.Value}");
+            if (userIdClaim == null)
             {
-                Console.WriteLine($"🔍🔍 Grade: {grade.Score}");
+                Console.WriteLine($"🔍🔍 User ID claim not found.");
+                TempData["Error"] = "User ID claim not found.";
+                return RedirectToAction("Index", "Home");
             }
-            ViewBag.CourseId = courseId;
-            Console.WriteLine($"🔍🔍the courseId is {courseId}");
-            // ViewBag.CourseName = course.Name;
 
-            return View(userEnrollments);
+            var lecturerId = int.Parse(userIdClaim.Value);
+            Console.WriteLine($"🔍🔍🔍🔍 User ID claim: {userIdClaim.Value}");
+            var courses = await _courseService.GetCoursesByLecturerIdAsync(lecturerId);
+
+            if (courses == null || !courses.Any())
+            {
+                Console.WriteLine($"🔍🔍🔍🔍 course is null");
+
+                TempData["Error"] = "No courses found for this lecturer.";
+                return RedirectToAction("Index", "Home");
+            }
+
+            // var students = await _userService.GetStudentsByCoursesAsync(courseId);
+            var students = await _courseService.GetStudentEnrolledInCourseAsync(courseId);
+            var grades = await _gradeService.GetCourseGradesAsync(courseId);
+            ViewBag.Grades = grades;
+            ViewBag.CourseId = courseId;
+
+            return View("~/Views/Lecturer/ManageGrades.cshtml",students);
+
+            // Console.WriteLine($"🔍 Received courseId: {courseId}");
+
+            // var students = await _userService.GetStudentsWithEnrollmentsAsync();
+            // var userEnrollments = await _courseService.GetUserEnrolledCourseAsync();
+
+            // // Debug logging
+            // Console.WriteLine($"🔍 Course ID: {courseId}");
+            // Console.WriteLine($"🔍 Total students: {students.Count()}");
+            // Console.WriteLine($"🔍 enrollments: {userEnrollments.Count()}");
+
+            // var grades = await _gradeService.GetCourseGradesAsync(courseId);
+            // Console.WriteLine($"🔍 Grades for course: {grades.Count()}");
+
+            // ViewBag.Grades = grades;
+            // foreach (var grade in grades)
+            // {
+            //     Console.WriteLine($"🔍🔍 Grade: {grade.Score}");
+            // }
+            // ViewBag.CourseId = courseId;
+            // Console.WriteLine($"🔍🔍the courseId is {courseId}");
+            // // ViewBag.CourseName = course.Name;
+
+            // return View(userEnrollments);
         }
 
         [Authorize(Roles = "Lecturer")]

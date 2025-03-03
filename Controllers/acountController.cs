@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -30,18 +31,11 @@ namespace SchoolManagementApp.MVC.Controllers
     
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult Login(string returnUrl = null)
+        public IActionResult Login(string? returnUrl = null)
         {
             ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
-
-        [HttpPost]
-        // public IActionResult Login(string returnUrl = null)
-        // {
-        //     ViewData["ReturnUrl"] = returnUrl;
-        //     return View();
-        // }
 
         [HttpPost]
         public async Task<IActionResult> Login(LoginView model)
@@ -62,6 +56,24 @@ namespace SchoolManagementApp.MVC.Controllers
         
         var permissions = await _authService.GetPermissionsForRole(model.Role.ToString());
         var jwtToken = _jwtService.GenerateToken(user.Id, user.Username, model.Role.ToString(), permissions);
+
+        Console.WriteLine($"⌚⌚⌚⌚⌚⌚⌚  {jwtToken}");
+
+            // Extract claims from JWT token
+        var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.Name, user.Username),
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Role, model.Role.ToString())
+        };
+
+        var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+        var authProperties = new AuthenticationProperties
+        {
+            IsPersistent = true
+        };
+
+        // await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
 
         //store token in session
         HttpContext.Session.SetString("JWTToken", token);

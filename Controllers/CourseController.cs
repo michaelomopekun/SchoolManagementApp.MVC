@@ -2,6 +2,8 @@
 using System.Linq.Expressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Identity.Client;
 using SchoolManagementApp.MVC.Models;
 using SchoolManagementApp.MVC.Repository;
 
@@ -15,13 +17,15 @@ namespace SchoolManagementApp.MVC.Controllers
         private readonly ICourseRepository _courseRepository;
         private readonly IStudentRepository _studentRepository;
         private readonly IEnrollmentRepository _enrollmentRepository;
+        private readonly IUserService _userService;
 
-        public CourseController(ICourseService courseService, ICourseRepository courseRepository, IStudentRepository studentRepository,IEnrollmentRepository enrollmentRepository)
+        public CourseController(ICourseService courseService, ICourseRepository courseRepository, IStudentRepository studentRepository,IEnrollmentRepository enrollmentRepository, IUserService userService)
         {
             _courseService = courseService;
             _courseRepository = courseRepository;
             _studentRepository = studentRepository;
             _enrollmentRepository = enrollmentRepository;
+            _userService = userService;
         }
 
         [HttpGet("CourseList")]
@@ -29,23 +33,39 @@ namespace SchoolManagementApp.MVC.Controllers
         public async Task<IActionResult> CourseList()
         {
             var courses = await _courseService.GetAllCoursesAsync();
+            foreach( var course in courses)
+            {
+                var lecturerId = course.LecturerId;
+                var lecturer = await _userService.GetUserByIdAsync(lecturerId);
+                ViewBag.Lecturer = lecturer;
+            }
+
             return View(courses);
         }
 
         [Authorize(Roles = "Admin,Lecturer")]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
+            var Lecturer = await _userService.GetAllLecturerAsync();
+            ViewBag.Lecturer = new SelectList(Lecturer, "Id", "Username");
             return View();
         }
         [HttpPost]
         public async Task<IActionResult> Create(Course course)
         {
-            if(ModelState.IsValid)
-            {
+            Console.WriteLine($"✅✅ Got course name {course.Name}");
+            Console.WriteLine($"✅✅ model state is {ModelState.IsValid}");
+            Console.WriteLine($"✅✅ lecturerId is {course.LecturerId}");
+
+            // if (!ModelState.IsValid)
+            // {
+            //     var lecturer = await _userService.GetAllLecturerAsync();
+            //     ViewBag.Lecturers = new SelectList(lecturer, "Id", "Username");
+            //     return View(course);
+            // }
+
                 await _courseService.AddCourseAsync(course);
                 return RedirectToAction(nameof(CourseList));
-            }
-            return View(course);
         }
 
         [HttpPost("edit/{Id}")]
@@ -56,17 +76,16 @@ namespace SchoolManagementApp.MVC.Controllers
             {
                 return NotFound();
             }
-            if(ModelState.IsValid)
-            {
-                await _courseService.UpdateCourseAsync(course);
-                return RedirectToAction(nameof(CourseList));
-            }
-            return  View(course);
+            await _courseService.UpdateCourseAsync(course);
+            return RedirectToAction(nameof(CourseList));
         }
         [HttpGet("edit/{Id}")]
         [Authorize(Roles = "Admin,Lecturer")]
         public async Task<IActionResult> Edit(int Id)
         {
+            var Lecturer = await _userService.GetAllLecturerAsync();
+            ViewBag.Lecturer = new SelectList(Lecturer, "Id", "Username");
+
             var course = await _courseRepository.GetCourseByIdAsync(Id);
             if(course == null)
             {
@@ -75,7 +94,7 @@ namespace SchoolManagementApp.MVC.Controllers
             return View(course);
         }
         [HttpGet]
-        [Authorize(Roles = "Admin,Lecturer")]
+        [Authorize(Roles = "Admin,Lecturer")] 
         public async Task<IActionResult> Delete(int Id)
         {
             var course = await _courseRepository.GetCourseByIdAsync(Id);

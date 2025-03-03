@@ -53,15 +53,14 @@
                             <li class="nav-item">
                                 <a class="nav-link text-light" asp-controller="Home" asp-action="Index">Home</a>
                             </li>
-                            @if(!(User.IsInRole("Lecturer"))){
+                            @* @if(!(User.IsInRole("Lecturer"))){
                             <li class="nav-item">
                                 <a class="nav-link text-light" asp-controller="Course" asp-action="CourseList">Courses</a>
-                            </li>
+                            </li> *@
                             @if(User.IsInRole("Lecturer")){
                                 <li class="nav-item">
-                                <a class="nav-link text-light" asp-controller="Course" asp-action="">My Courses</a>
+                                <a class="nav-link text-light" asp-controller="Lecturer" asp-action="MyCourses">My Courses</a>
                             </li>
-                            }
                             }
                             <li class="nav-item">
                                 <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="About">About</a>

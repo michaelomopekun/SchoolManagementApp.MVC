@@ -44,7 +44,6 @@ public class JwtService
             new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
             new Claim(ClaimTypes.Name, username),
             new Claim(ClaimTypes.Role, role)
-            // new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
         foreach(var permission in permissions)
@@ -53,13 +52,13 @@ public class JwtService
         }
 
         var token = new JwtSecurityToken(
-                // Subject = new ClaimsIdentity(claim),
-                issuer: _config["jwtSettings:Issuer"],
-                audience : _config["jwtSettings:Audience"],
-                claims: claim,
-                signingCredentials: credentials,
-                expires: DateTime.Now.AddMinutes(Convert.ToDouble(_config["jwtSettings:ExpiryMinutes"]))
-        );
+                        issuer: _config["jwtSettings:Issuer"],
+                        audience: _config["jwtSettings:Audience"],
+                        claims: claim,
+                        notBefore: null,
+                        expires: DateTime.Now.AddMinutes(Convert.ToDouble(_config["jwtSettings:ExpiryMinutes"])),
+                        signingCredentials: credentials
+                );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }

@@ -82,4 +82,31 @@ public class UserService : IUserService
         return students;
     }
 
+    public async Task<IEnumerable<User>> GetAllLecturerAsync()
+    {
+        return await _context.Users
+            .Where(s=> s.Role == UserRole.Lecturer)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<User>> GetAllStudentsAsync()
+    {
+        return await _context.Users 
+            .Where(s=> s.Role == UserRole.Student)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<User>> GetAllAdminsAsync()
+    {
+        return await _context.Users
+            .Where(s=> s.Role == UserRole.Admin)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<User>> GetStudentsByCoursesAsync(int CourseId)
+    {
+        return await _context.Users
+            .Where(c=> c.EnrolledCourses.Any(s=> s.Status == EnrollmentStatus.Active && s.CourseId == CourseId))
+            .ToListAsync();
+    }
 }
