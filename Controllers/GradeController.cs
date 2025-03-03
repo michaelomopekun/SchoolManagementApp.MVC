@@ -88,29 +88,6 @@ namespace SchoolManagementApp.MVC.Controllers
 
             return View("~/Views/Lecturer/ManageGrades.cshtml",students);
 
-            // Console.WriteLine($"🔍 Received courseId: {courseId}");
-
-            // var students = await _userService.GetStudentsWithEnrollmentsAsync();
-            // var userEnrollments = await _courseService.GetUserEnrolledCourseAsync();
-
-            // // Debug logging
-            // Console.WriteLine($"🔍 Course ID: {courseId}");
-            // Console.WriteLine($"🔍 Total students: {students.Count()}");
-            // Console.WriteLine($"🔍 enrollments: {userEnrollments.Count()}");
-
-            // var grades = await _gradeService.GetCourseGradesAsync(courseId);
-            // Console.WriteLine($"🔍 Grades for course: {grades.Count()}");
-
-            // ViewBag.Grades = grades;
-            // foreach (var grade in grades)
-            // {
-            //     Console.WriteLine($"🔍🔍 Grade: {grade.Score}");
-            // }
-            // ViewBag.CourseId = courseId;
-            // Console.WriteLine($"🔍🔍the courseId is {courseId}");
-            // // ViewBag.CourseName = course.Name;
-
-            // return View(userEnrollments);
         }
 
         [Authorize(Roles = "Lecturer")]
@@ -175,7 +152,7 @@ namespace SchoolManagementApp.MVC.Controllers
             return View(grade);
         }
 
-        [HttpPost]
+        [HttpGet]
         [Authorize(Roles = "Lecturer")]
         public async Task<IActionResult> DeleteGrade(int id)
         {
@@ -184,7 +161,7 @@ namespace SchoolManagementApp.MVC.Controllers
             {
                 return NotFound();
             }
-
+            Console.WriteLine($"🔍🔍🔍🔍preparing to delete grade: {id}");
             await _gradeService.DeleteGradeAsync(id);
             TempData["Success"] = "Grade deleted successfully";
             return RedirectToAction(nameof(ManageGrades), new { courseId = grade.CourseId });
