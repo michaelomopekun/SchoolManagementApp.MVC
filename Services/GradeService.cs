@@ -154,5 +154,49 @@ public class GradeService : IGradeService
             .Take(count)
             .ToListAsync();
 }
-}
+
+        public async Task<List<Grade>> GetFilteredGradesAsync(GradeFilterViewModel filter)
+        {
+            var query = _context.Grades
+            .Where(g => g.CourseId == filter.CourseId)
+            .AsQueryable();
+
+            if(filter.StudentId.HasValue)
+            {
+                query = query.Where(g => g.UserId == filter.StudentId);
+            }
+
+            if(filter.GradeStatus.HasValue)
+            {
+                if(filter.GradeStatus == GradeStatus.Graded)
+                {
+                    query = query.Where(g => g.Score.HasValue);
+                }
+                else if(filter.GradeStatus == GradeStatus.NotGraded)
+                {
+                    query = query.Where(g => !g.Score.HasValue);
+                }
+            }
+
+            if(filter.MaxScore.HasValue)
+            {
+                query = query.Where(g => g.Score <= filter.MaxScore);
+            }
+
+            if(filter.MinScore.HasValue)
+            {
+                query = query.Where(g => g.Score >= filter.MinScore);
+            }
+
+            return await query.Select(g => new Grade
+            {
+                // GradeId = g.GradeId,
+                UserId = g.UserId,
+                CourseId = g.CourseId,
+                Score = g.Score,
+                // Comments = g.Comments,
+                // GradedDate = g.GradedDate
+            }).ToListAsync();
+        }
+    }
 }

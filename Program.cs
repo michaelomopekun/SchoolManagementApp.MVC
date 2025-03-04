@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using SchoolManagementApp.MVC;
+// using SchoolManagementApp.MVC;
 using SchoolManagementApp.MVC.Authorization;
 using SchoolManagementApp.MVC.Models;
 using SchoolManagementApp.MVC.Repository;

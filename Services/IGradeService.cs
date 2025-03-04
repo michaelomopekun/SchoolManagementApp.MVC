@@ -18,5 +18,7 @@ public interface IGradeService
     Task<int> GetTotalGradedStudentsForLecturerAsync(int lecturerId);
 
     Task<IEnumerable<Grade>> GetRecentGradesForLecturerAsync(int lecturerId, int count);
+
+    Task<List<Grade>> GetFilteredGradesAsync(GradeFilterViewModel filter); 
 }
 }

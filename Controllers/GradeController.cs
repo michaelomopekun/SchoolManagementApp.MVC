@@ -52,7 +52,7 @@ namespace SchoolManagementApp.MVC.Controllers
         }
 
         [Authorize(Roles = "Lecturer")]
-        public async Task<IActionResult> ManageGrades(int courseId)
+        public async Task<IActionResult> ManageGrades(int courseId, [FromQuery] GradeFilterViewModel filter)
         {
             
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
@@ -82,7 +82,20 @@ namespace SchoolManagementApp.MVC.Controllers
             {
                 students = new List<UserCourse>();
             }
-            var grades = await _gradeService.GetCourseGradesAsync(courseId);
+
+            filter.CourseId = courseId;
+            var grades = await _gradeService.GetFilteredGradesAsync(filter);
+            
+            // var grades = await _gradeService.GetCourseGradesAsync(courseId);
+            // List<Grade> gradesList = new List<Grade>();
+            // foreach(var grade in grades)
+            // {
+            //     if(grade.Score == null)
+            //     {
+            //         grade.Score = 0;
+            //         gradesList.Add(grade);
+            //     }
+            // }
             ViewBag.Grades = grades;
             ViewBag.CourseId = courseId;
 
