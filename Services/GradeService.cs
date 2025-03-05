@@ -16,6 +16,7 @@ public class GradeService : IGradeService
     {
         try
         {
+            Console.WriteLine($"⌚⌚⌚⌚⌚⌚Adding grade of score {grade.Score} an comment {grade.Comments} for user {grade.UserId} in course {grade.CourseId}");
             if (grade == null)
                 throw new ArgumentNullException(nameof(grade));
 
@@ -31,6 +32,9 @@ public class GradeService : IGradeService
                 .FirstOrDefaultAsync(g => g.UserId == grade.UserId && 
                                          g.CourseId == grade.CourseId);
 
+            var existingEnrollment = await _context.UserCourses
+                .FirstOrDefaultAsync(e => e.UserId == grade.UserId && e.CourseId == grade.CourseId);
+
             if (existingGrade != null)
             {
                 // Update existing grade
@@ -38,10 +42,17 @@ public class GradeService : IGradeService
                 existingGrade.Comments = grade.Comments;
                 existingGrade.GradedDate = DateTime.UtcNow;
 
+
                 _context.Entry(existingGrade).State = EntityState.Modified;
+
             }
             else
             {
+                //update gradeStatus in the usercourse table
+                existingEnrollment.gradeStatus = gradeStatus.Graded;
+                _context.Entry(existingEnrollment).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
                 // Add new grade
                 grade.GradedDate = DateTime.UtcNow;
                 await _context.Grades.AddAsync(grade);
@@ -110,6 +121,7 @@ public class GradeService : IGradeService
         {
             var existingGrade = await _context.Grades
                 .FirstOrDefaultAsync(g => g.GradeId == grade.GradeId);
+
 
             if (existingGrade != null)
             {
@@ -190,7 +202,7 @@ public class GradeService : IGradeService
 
             return await query.Select(g => new Grade
             {
-                // GradeId = g.GradeId,
+                GradeId = g.GradeId,
                 UserId = g.UserId,
                 CourseId = g.CourseId,
                 Score = g.Score,

@@ -34,11 +34,9 @@ namespace SchoolManagementApp.MVC.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Credit")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("LecturerId")
@@ -178,8 +176,11 @@ namespace SchoolManagementApp.MVC.Migrations
 
             modelBuilder.Entity("SchoolManagementApp.MVC.Models.UserCourse", b =>
                 {
-                    b.Property<int>("UserId")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<int>("CourseId")
                         .HasColumnType("int");
@@ -187,21 +188,27 @@ namespace SchoolManagementApp.MVC.Migrations
                     b.Property<DateTime>("EnrollmentDate")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
-
                     b.Property<int>("LecturerId")
                         .HasColumnType("int");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("WithdrawalDate")
                         .HasColumnType("datetime2");
 
-                    b.HasKey("UserId", "CourseId");
+                    b.Property<int>("gradeStatus")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
 
                     b.HasIndex("CourseId");
+
+                    b.HasIndex("UserId", "CourseId")
+                        .IsUnique();
 
                     b.ToTable("UserCourses");
                 });

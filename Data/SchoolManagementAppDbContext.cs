@@ -29,7 +29,14 @@ public class SchoolManagementAppDbContext : DbContext
 
         modelBuilder.Entity<UserCourse>(entity =>
         {
-            entity.HasKey(uc => new { uc.UserId, uc.CourseId });
+           entity.HasKey(e => e.Id);
+
+            // Configure Id as identity column
+            entity.Property(e => e.Id)
+                .UseIdentityColumn();
+
+            // Add unique constraint for UserId and CourseId combination
+            entity.HasIndex(e => new { e.UserId, e.CourseId }).IsUnique();
 
             entity.HasOne(uc => uc.User)
                 .WithMany(u => u.EnrolledCourses)

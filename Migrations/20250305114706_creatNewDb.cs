@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace SchoolManagementApp.MVC.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class creatNewDb : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -84,8 +84,8 @@ namespace SchoolManagementApp.MVC.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Code = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Credit = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Credit = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     LecturerId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -132,16 +132,19 @@ namespace SchoolManagementApp.MVC.Migrations
                 name: "UserCourses",
                 columns: table => new
                 {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
                     UserId = table.Column<int>(type: "int", nullable: false),
                     CourseId = table.Column<int>(type: "int", nullable: false),
-                    Id = table.Column<int>(type: "int", nullable: false),
                     EnrollmentDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
-                    WithdrawalDate = table.Column<DateTime>(type: "datetime2", nullable: false)
+                    WithdrawalDate = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    LecturerId = table.Column<int>(type: "int", nullable: false),
+                    gradeStatus = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserCourses", x => new { x.UserId, x.CourseId });
+                    table.PrimaryKey("PK_UserCourses", x => x.Id);
                     table.ForeignKey(
                         name: "FK_UserCourses_Course_CourseId",
                         column: x => x.CourseId,
@@ -180,6 +183,12 @@ namespace SchoolManagementApp.MVC.Migrations
                 name: "IX_UserCourses_CourseId",
                 table: "UserCourses",
                 column: "CourseId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_UserCourses_UserId_CourseId",
+                table: "UserCourses",
+                columns: new[] { "UserId", "CourseId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_Username",

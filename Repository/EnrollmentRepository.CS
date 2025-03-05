@@ -5,9 +5,11 @@ using SchoolManagementApp.MVC.Repository;
 public class EnrollmentRepository : IEnrollmentRepository
 {
     private readonly SchoolManagementAppDbContext _context;
+    // private readonly ICourseService _courseService;
     public EnrollmentRepository(SchoolManagementAppDbContext context)
     {
         _context = context;
+        // _courseService = courseService;
     }
     public async Task EnrollAsync(UserCourse enrollment)
     {
@@ -23,6 +25,8 @@ public class EnrollmentRepository : IEnrollmentRepository
                 existingEnrollment.Status = EnrollmentStatus.Active;
                 existingEnrollment.EnrollmentDate = DateTime.Now;
                 existingEnrollment.WithdrawalDate = DateTime.MinValue;
+                existingEnrollment.LecturerId = enrollment.LecturerId;
+                
                 await UpdateEnrollmentAsync(existingEnrollment);
                 return;
             }
@@ -30,7 +34,13 @@ public class EnrollmentRepository : IEnrollmentRepository
             throw new InvalidOperationException("Student is already enrolled in this course.");
         }
 
-        // If no enrollment exists, create new one
+        var lecturerId = await _context.Course
+            .Where(c => c.Id == enrollment.CourseId)
+            .Select(c => c.LecturerId)
+            .FirstOrDefaultAsync();
+
+        enrollment.LecturerId = lecturerId;
+
         await _context.UserCourses.AddAsync(enrollment);
         await _context.SaveChangesAsync();
     }

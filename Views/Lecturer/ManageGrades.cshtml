@@ -27,14 +27,13 @@
     {
         if (currentGradeStatus == "Graded")
         {
-            var gradedStudentIds = grades.Where(g => g.Score.HasValue).Select(g => g.UserId);
-            filteredEnrollments = filteredEnrollments.Where(e => gradedStudentIds.Contains(e.UserId)).ToList();
+            @* var gradedStudentIds = grades.Where(g => g.Score.HasValue).Select(g => g.UserId); *@
+            filteredEnrollments = filteredEnrollments.Where(e => e.gradeStatus == gradeStatus.Graded ).ToList();
         }
         else if (currentGradeStatus == "NotGraded")
         {
-            filteredEnrollments = filteredEnrollments.Where(e => 
-            !grades.Any(g => g.UserId == e.UserId && 
-                           g.CourseId == e.CourseId)).ToList();
+            filteredEnrollments = filteredEnrollments.Where(e => e.gradeStatus == gradeStatus.NotGraded ).ToList();
+
         }
     }
 
@@ -47,8 +46,9 @@
 
     if (!string.IsNullOrEmpty(maxScore) && decimal.TryParse(maxScore, out decimal max))
     {
-        var validStudentIds = grades.Where(g => g.Score <= max).Select(g => g.UserId);
-        filteredEnrollments = filteredEnrollments.Where(e => validStudentIds.Contains(e.UserId)).ToList();
+         filteredEnrollments = filteredEnrollments.Where(e => 
+                    grades.Any(g => g.UserId == e.UserId && 
+                        g.CourseId == e.CourseId)).ToList();
     }
 }
 
@@ -107,7 +107,7 @@
                         </div>
                     </div>
                     <div class="col-md-2">
-                        <button type="submit" class="btn btn-primary mt-4">Apply Filter</button>
+                        <button type="submit" class="btn btn-primary mt-4">Apply</button>
                     </div>
                 </div>
             </form>
@@ -144,17 +144,19 @@
                             <div class="btn-group" role="group">
                                 @if (grade != null)
                                 {
-                                    <a asp-action="EditGrade" 
-                                       asp-route-id="@grade.GradeId" 
+                                    <a  asp-controller="Grade"
+                                        asp-action="EditGrade" 
+                                       asp-route-id="@grade.GradeId"
                                        class="btn btn-warning btn-sm">
                                         <i class="bi bi-pencil"></i> Edit
+                                        @* Add this to check if GradeId is flowing into the view *@
+                                        @* <p>GradeId in View: @grade.GradeId</p> *@
                                     </a>
                                     <a asp-controller="Grade" 
-                                       asp-action="DeleteGrade" 
-                                       asp-route-id="@grade.GradeId" 
-                                       class="btn btn-danger btn-sm"
-                                       onclick="confirmDelete(@grade.GradeId); return false;">
-                                        <i class="bi bi-trash"></i> Delete
+                                    asp-action="DeleteGrade" 
+                                    asp-route-id="@grade.GradeId" 
+                                    class="btn btn-danger btn-sm">
+                                    <i class="bi bi-trash"></i> Delete
                                     </a>
                                 }
                                 else

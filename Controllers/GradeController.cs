@@ -103,6 +103,7 @@ namespace SchoolManagementApp.MVC.Controllers
 
         }
 
+        // [HttpPost]
         [Authorize(Roles = "Lecturer")]
         public async Task<IActionResult> AddGrade(int courseId, int userid)
         {
@@ -125,31 +126,27 @@ namespace SchoolManagementApp.MVC.Controllers
         [Authorize(Roles = "Lecturer")]
         public async Task<IActionResult> AddGrade(Grade grade)
         {
-            if (ModelState.IsValid)
-            {
-                try
-                {
+            
                     await _gradeService.AddGradeAsync(grade);
                     TempData["Success"] = "Grade added successfully.";
                     return RedirectToAction("ManageGrades", new { courseId = grade.CourseId });
-                }
-                catch (Exception ex)
-                {
-                    ModelState.AddModelError("", ex.Message);
-                }
-            }
-            return View(grade);
+                
         }
 
         [Authorize(Roles = "Lecturer")]
         public async Task<IActionResult> EditGrade(int id)
         {
+            Console.WriteLine($"🔍🔍🔍🔍preparing to edit grade: {id}");
+
             var grade = await _gradeService.GetGradeByIdAsync(id);
+
+            // Console.WriteLine($"🔍🔍🔍🔍grade returned: {grade.Score}");
+
             if (grade == null)
             {
                 return NotFound();
             }
-            return View(grade);
+            return View("~/Views/Lecturer/EditGrade.cshtml", grade);
         }
 
         [HttpPost]
@@ -162,7 +159,7 @@ namespace SchoolManagementApp.MVC.Controllers
                 TempData["Success"] = "Grade updated successfully";
                 return RedirectToAction(nameof(ManageGrades), new { courseId = grade.CourseId });
             }
-            return View(grade);
+            return View("~/Views/Lecturer/EditGrade.cshtml", grade);
         }
 
         [HttpGet]

@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace SchoolManagementApp.MVC.Migrations
 {
     [DbContext(typeof(SchoolManagementAppDbContext))]
-    [Migration("20250228082059_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20250305114706_creatNewDb")]
+    partial class creatNewDb
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,7 +24,7 @@ namespace SchoolManagementApp.MVC.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Course", b =>
+            modelBuilder.Entity("SchoolManagementApp.MVC.Models.Course", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -37,11 +37,9 @@ namespace SchoolManagementApp.MVC.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Credit")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("LecturerId")
@@ -58,7 +56,7 @@ namespace SchoolManagementApp.MVC.Migrations
                     b.ToTable("Course", (string)null);
                 });
 
-            modelBuilder.Entity("Grade", b =>
+            modelBuilder.Entity("SchoolManagementApp.MVC.Models.Grade", b =>
                 {
                     b.Property<int>("GradeId")
                         .ValueGeneratedOnAdd()
@@ -94,7 +92,7 @@ namespace SchoolManagementApp.MVC.Migrations
                     b.ToTable("Grades", (string)null);
                 });
 
-            modelBuilder.Entity("Permission", b =>
+            modelBuilder.Entity("SchoolManagementApp.MVC.Models.Permission", b =>
                 {
                     b.Property<int>("permission_id")
                         .ValueGeneratedOnAdd()
@@ -113,7 +111,7 @@ namespace SchoolManagementApp.MVC.Migrations
                     b.ToTable("Permissions", (string)null);
                 });
 
-            modelBuilder.Entity("Role", b =>
+            modelBuilder.Entity("SchoolManagementApp.MVC.Models.Role", b =>
                 {
                     b.Property<int>("role_id")
                         .ValueGeneratedOnAdd()
@@ -132,7 +130,7 @@ namespace SchoolManagementApp.MVC.Migrations
                     b.ToTable("Roles", (string)null);
                 });
 
-            modelBuilder.Entity("RolePermission", b =>
+            modelBuilder.Entity("SchoolManagementApp.MVC.Models.RolePermission", b =>
                 {
                     b.Property<int>("role_id")
                         .HasColumnType("int")
@@ -149,34 +147,7 @@ namespace SchoolManagementApp.MVC.Migrations
                     b.ToTable("Role_Permissions", (string)null);
                 });
 
-            modelBuilder.Entity("SchoolManagementApp.MVC.Models.UserCourse", b =>
-                {
-                    b.Property<int>("UserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CourseId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("EnrollmentDate")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("Id")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("WithdrawalDate")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("UserId", "CourseId");
-
-                    b.HasIndex("CourseId");
-
-                    b.ToTable("UserCourses");
-                });
-
-            modelBuilder.Entity("User", b =>
+            modelBuilder.Entity("SchoolManagementApp.MVC.Models.User", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -206,9 +177,48 @@ namespace SchoolManagementApp.MVC.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Course", b =>
+            modelBuilder.Entity("SchoolManagementApp.MVC.Models.UserCourse", b =>
                 {
-                    b.HasOne("User", "Lecturer")
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CourseId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("EnrollmentDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("LecturerId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("WithdrawalDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("gradeStatus")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CourseId");
+
+                    b.HasIndex("UserId", "CourseId")
+                        .IsUnique();
+
+                    b.ToTable("UserCourses");
+                });
+
+            modelBuilder.Entity("SchoolManagementApp.MVC.Models.Course", b =>
+                {
+                    b.HasOne("SchoolManagementApp.MVC.Models.User", "Lecturer")
                         .WithMany("TaughtCourses")
                         .HasForeignKey("LecturerId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -217,15 +227,15 @@ namespace SchoolManagementApp.MVC.Migrations
                     b.Navigation("Lecturer");
                 });
 
-            modelBuilder.Entity("Grade", b =>
+            modelBuilder.Entity("SchoolManagementApp.MVC.Models.Grade", b =>
                 {
-                    b.HasOne("Course", "Course")
+                    b.HasOne("SchoolManagementApp.MVC.Models.Course", "Course")
                         .WithMany("Grades")
                         .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("User", "User")
+                    b.HasOne("SchoolManagementApp.MVC.Models.User", "User")
                         .WithMany("Grades")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -236,15 +246,15 @@ namespace SchoolManagementApp.MVC.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("RolePermission", b =>
+            modelBuilder.Entity("SchoolManagementApp.MVC.Models.RolePermission", b =>
                 {
-                    b.HasOne("Permission", "Permission")
+                    b.HasOne("SchoolManagementApp.MVC.Models.Permission", "Permission")
                         .WithMany("RolePermissions")
                         .HasForeignKey("permission_id")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Role", "Role")
+                    b.HasOne("SchoolManagementApp.MVC.Models.Role", "Role")
                         .WithMany("RolePermissions")
                         .HasForeignKey("role_id")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -257,13 +267,13 @@ namespace SchoolManagementApp.MVC.Migrations
 
             modelBuilder.Entity("SchoolManagementApp.MVC.Models.UserCourse", b =>
                 {
-                    b.HasOne("Course", "Course")
+                    b.HasOne("SchoolManagementApp.MVC.Models.Course", "Course")
                         .WithMany("EnrolledUsers")
                         .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("User", "User")
+                    b.HasOne("SchoolManagementApp.MVC.Models.User", "User")
                         .WithMany("EnrolledCourses")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -274,24 +284,24 @@ namespace SchoolManagementApp.MVC.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Course", b =>
+            modelBuilder.Entity("SchoolManagementApp.MVC.Models.Course", b =>
                 {
                     b.Navigation("EnrolledUsers");
 
                     b.Navigation("Grades");
                 });
 
-            modelBuilder.Entity("Permission", b =>
+            modelBuilder.Entity("SchoolManagementApp.MVC.Models.Permission", b =>
                 {
                     b.Navigation("RolePermissions");
                 });
 
-            modelBuilder.Entity("Role", b =>
+            modelBuilder.Entity("SchoolManagementApp.MVC.Models.Role", b =>
                 {
                     b.Navigation("RolePermissions");
                 });
 
-            modelBuilder.Entity("User", b =>
+            modelBuilder.Entity("SchoolManagementApp.MVC.Models.User", b =>
                 {
                     b.Navigation("EnrolledCourses");
 

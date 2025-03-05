@@ -25,8 +25,16 @@ namespace SchoolManagementApp.MVC.Models
 
         [ForeignKey("CourseId")]
         public virtual Course Course { get; set; }
+
         public DateTime WithdrawalDate{get;set;}
+
         public int LecturerId { get; set; }
+        public UserCourse()
+        {
+            gradeStatus = gradeStatus.NotGraded;
+        }
+        public gradeStatus gradeStatus { get; set; }
+
     }
 
     public enum EnrollmentStatus
@@ -34,5 +42,10 @@ namespace SchoolManagementApp.MVC.Models
         Active= 1,
         Completed= 2,
         Withdrawn= 0
+    }
+    public enum gradeStatus
+    {
+        Graded = 100,
+        NotGraded = 99
     }
 }
