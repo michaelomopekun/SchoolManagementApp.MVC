@@ -3,6 +3,11 @@ using SchoolManagementApp.MVC.Models;
 
 public class SchoolManagementAppDbContext : DbContext
 {
+
+     public SchoolManagementAppDbContext()
+        {
+        }
+
     public DbSet<User> Users { get; set; }
     public DbSet<Course> Course { get; set; }
     public DbSet<RolePermission> Role_Permissions { get; set; }
@@ -10,8 +15,17 @@ public class SchoolManagementAppDbContext : DbContext
     public DbSet<Permission> Permissions { get; set; }
     public DbSet<UserCourse> UserCourses { get; set; }
     public DbSet<Grade> Grades { get; set; }
+    // public DbSet<GradeReport> GradeReports { get; set; }
 
     public SchoolManagementAppDbContext(DbContextOptions<SchoolManagementAppDbContext> options) : base(options) { }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            optionsBuilder.UseSqlServer("Server=(localdb)\\mssqllocaldb;Database=SchoolManagementAppDb;Trusted_Connection=True;MultipleActiveResultSets=true");
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

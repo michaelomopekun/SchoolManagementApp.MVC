@@ -5,11 +5,13 @@ public class GradeService : IGradeService
 {
     private readonly SchoolManagementAppDbContext _context;
     private readonly ILogger<GradeService> _logger;
+    private readonly ICourseService _courseService;
 
-    public GradeService(SchoolManagementAppDbContext context, ILogger<GradeService> logger)
+    public GradeService(SchoolManagementAppDbContext context, ILogger<GradeService> logger, ICourseService courseService)
     {
         _context = context;
         _logger = logger;
+        _courseService = courseService;
     }
 
     public async Task AddGradeAsync(Grade grade)
@@ -17,6 +19,14 @@ public class GradeService : IGradeService
         try
         {
             Console.WriteLine($"⌚⌚⌚⌚⌚⌚Adding grade of score {grade.Score} an comment {grade.Comments} for user {grade.UserId} in course {grade.CourseId}");
+
+            var course = await _courseService.GetCourseAsync(grade.CourseId);
+
+            if (course == null)
+            {
+                Console.WriteLine("🔍🔍🔍🔍Error generating Course in method AddGradeAsync in course service");
+            }
+
             if (grade == null)
                 throw new ArgumentNullException(nameof(grade));
 
@@ -51,10 +61,18 @@ public class GradeService : IGradeService
                 //update gradeStatus in the usercourse table
                 existingEnrollment.gradeStatus = gradeStatus.Graded;
                 _context.Entry(existingEnrollment).State = EntityState.Modified;
+
+                grade.AcademicSession = "2024/2025";
+                grade.CourseCode = course.Code;
+                grade.CreditHours = course.Credit;
+                grade.CourseName = course.Name;
+                grade.Semester = Semester.FirstSemester;
+
                 await _context.SaveChangesAsync();
 
                 // Add new grade
                 grade.GradedDate = DateTime.UtcNow;
+                
                 await _context.Grades.AddAsync(grade);
             }
 
@@ -107,12 +125,14 @@ public class GradeService : IGradeService
 
     public async Task<IEnumerable<Grade>> GetUserGradesAsync(int userId)
     {
-        return await _context.Grades
+        var grade = await _context.Grades
             .Include(g => g.Course)
             .Include(g=> g.User)
             .Where(g => g.UserId == userId)
             .OrderByDescending(g => g.GradedDate)
             .ToListAsync();
+
+        return grade;
     }
 
     public async Task UpdateGradeAsync(Grade grade)

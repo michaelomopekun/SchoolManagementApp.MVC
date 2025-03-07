@@ -140,6 +140,7 @@ builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IGradeService, GradeService>();
 builder.Services.AddScoped<IGradeService, GradeService>();
+builder.Services.AddScoped<IGradeReportService, GradeReportService>();
 builder.Services.AddLogging(loggingBuilder =>
     {
         loggingBuilder.AddConsole();

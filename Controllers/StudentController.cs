@@ -40,7 +40,7 @@ public class StudentController : Controller
             TempData["Error"] = "No Grades available.";
             return View(new List<Grade>());
         }
-        return View(grades);
+        return View("~/Views/Student/MyGrades.cshtml",grades);
     }
 
     [HttpGet]

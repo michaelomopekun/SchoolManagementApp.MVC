@@ -13,13 +13,15 @@ namespace SchoolManagementApp.MVC.Controllers
         private readonly IGradeService _gradeService;
         private readonly ICourseService _courseService;
         private readonly IUserService _userService;
+        private readonly IGradeReportService _gradeReportService;
         // private readonly IEnrollmentRepository _enrollmentRepository;
 
-        public GradeController(IGradeService gradeService, ICourseService courseService, IUserService userService)
+        public GradeController(IGradeService gradeService, ICourseService courseService, IUserService userService, IGradeReportService gradeReportService)
         {
             _gradeService = gradeService;
             _courseService = courseService;
             _userService = userService;
+            _gradeReportService = gradeReportService;
             // _enrollmentRepository = enrollmentRepository;
         }
 
@@ -27,8 +29,9 @@ namespace SchoolManagementApp.MVC.Controllers
         [Route("Grade/MyGrade/{userId}")]
         public async Task<IActionResult> MyGrades(int userId)
         {
-            var currentUserId = int.Parse(User.FindFirst("UserId")?.Value ?? "0");
+            // Console.WriteLine($"⌚⌚⌚⌚⌚⌚the user id is {userId}");
 
+            var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
             // Security check: ensure users can only view their own grades
             if (currentUserId != userId)
             {
@@ -38,6 +41,7 @@ namespace SchoolManagementApp.MVC.Controllers
 
             // Get user details
             var user = await _userService.GetUserByIdAsync(userId);
+            Console.WriteLine($"⌚⌚⌚⌚⌚⌚the user id is {user.Id}");
             if (user == null)
             {
                 TempData["Error"] = "User not found.";
@@ -48,7 +52,7 @@ namespace SchoolManagementApp.MVC.Controllers
             var grades = await _gradeService.GetUserGradesAsync(userId);
 
             ViewBag.User = user;
-            return View(grades);
+            return View("~/Views/Student/MyGrades.cshtml",grades);
         }
 
         [Authorize(Roles = "Lecturer")]
@@ -200,5 +204,37 @@ namespace SchoolManagementApp.MVC.Controllers
             };
             return View(viewModel);
         }
+
+        [Authorize(Roles = "Student")]
+        public async Task<IActionResult> DownLoadGradeReport(int studentId, string academicSession, Semester semester)
+        {
+            var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            Console.WriteLine($"⌚⌚⌚⌚⌚⌚ user id is {studentId}");
+            Console.WriteLine($"⌚⌚⌚⌚⌚⌚ user id is {currentUserId}");
+
+
+            if(currentUserId != studentId)
+            {
+
+                TempData["Error"] = "You can only download your own grade report.";
+                return RedirectToAction(nameof(MyGrades), new { userId = currentUserId });
+            }
+
+            try
+            {
+                var pdfBytes = await _gradeReportService.GenerateGradeReportPdf(studentId, academicSession, semester);
+                return File(pdfBytes, "application/pdf", $"GradeReport_{academicSession}_{semester}.pdf");
+            }
+            catch (Exception ex)
+            {
+
+                Console.WriteLine($"🔍🔍🔍🔍Error generating grade report: {ex.Message}");
+                TempData["Error"] = $"Error generating grade report.{ex.Message}";
+
+                return RedirectToAction(nameof(MyGrades), new { UserId = currentUserId});
+            }
+            
+        }
+        
     }
 }
