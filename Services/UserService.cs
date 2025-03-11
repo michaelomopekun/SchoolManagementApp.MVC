@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using SchoolManagementApp.MVC.Models;
 
@@ -108,5 +109,13 @@ public class UserService : IUserService
         return await _context.Users
             .Where(c=> c.EnrolledCourses.Any(s=> s.Status == EnrollmentStatus.Active && s.CourseId == CourseId))
             .ToListAsync();
+    }
+
+    public Task GetCurrentUserAsync(ClaimsPrincipal user)
+    {
+        var currentUserId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var currentUser = GetUserByIdAsync(currentUserId);
+        
+        return currentUser;
     }
 }

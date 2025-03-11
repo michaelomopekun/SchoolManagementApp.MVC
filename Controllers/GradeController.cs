@@ -157,13 +157,13 @@ namespace SchoolManagementApp.MVC.Controllers
         [Authorize(Roles = "Lecturer")]
         public async Task<IActionResult> EditGrade(Grade grade)
         {
-            if (ModelState.IsValid)
-            {
+            // if (ModelState.IsValid)
+            // {
                 await _gradeService.UpdateGradeAsync(grade);
                 TempData["Success"] = "Grade updated successfully";
                 return RedirectToAction(nameof(ManageGrades), new { courseId = grade.CourseId });
-            }
-            return View("~/Views/Lecturer/EditGrade.cshtml", grade);
+            // }
+            // return View("~/Views/Lecturer/EditGrade.cshtml", grade);
         }
 
         [HttpGet]

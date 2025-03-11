@@ -1,0 +1,88 @@
+@model IEnumerable<Course>
+@{
+    ViewData["Title"] = "Course Materials Management";
+}
+
+<div class="container">
+    <h2 class="mb-4">Course Materials</h2>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <div class="row">
+        @foreach (var course in Model)
+        {
+            <div class="col-md-6 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">@course.Code - @course.Name</h5>
+                            <div>
+                                @if (User.IsInRole("Lecturer"))
+                                {
+                                    <a asp-action="Upload" asp-route-courseId="@course.Id" 
+                                       class="btn btn-primary btn-sm">
+                                        Upload
+                                    </a>
+                                }
+                                <button type="button" class="btn btn-info btn-sm" 
+                                        data-bs-toggle="collapse" 
+                                        data-bs-target="#materials-@course.Id">
+                                    Materials
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="collapse mt-3" id="materials-@course.Id">
+                            @if (course.CourseMaterials?.Any() == true)
+                            {
+                                <ul class="list-group">
+                                    @foreach (var material in course.CourseMaterials)
+                                    {
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <strong>@material.Title</strong>
+                                                <small class="d-block text-muted">
+                                                    Downloads: @material.Downloads?.Count
+                                                </small>
+                                            </div>
+                                            <div class="btn-group">
+                                                <a asp-action="Download" asp-route-id="@material.Id" 
+                                                   class="btn btn-sm btn-primary">
+                                                    <i class="bi bi-download"></i>
+                                                </a>
+                                                <a asp-action="Edit" asp-route-id="@material.Id" 
+                                                   class="btn btn-sm btn-warning">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <a asp-action="DownloadHistory" asp-route-id="@material.Id" 
+                                                   class="btn btn-sm btn-info">
+                                                    <i class="bi bi-clock-history"></i>
+                                                </a>
+                                            </div>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                            else
+                            {
+                                <p class="text-muted">No materials available</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@section Styles {
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
+}

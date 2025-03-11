@@ -16,6 +16,8 @@ else if (User.IsInRole("Lecturer"))
         <ul class="dropdown-menu">
             <li><a class="dropdown-item" asp-controller="Lecturer" asp-action="Dashboard">Dashboard</a></li>
             <li><a class="dropdown-item" asp-controller="Lecturer" asp-action="MyCourses">My Courses</a></li>
+            <li><a class="dropdown-item" asp-controller="CourseMaterial" asp-action="Index">Course Materials</a></li>
+
             @* <li><a class="dropdown-item" asp-controller="Grade" asp-action="ManageGrades">Manage Grades</a></li> *@
             @* <li><a class="dropdown-item" asp-controller="Grade" asp-action="GradeList">GradedList</a></li> *@
             @* <li><a class="dropdown-item" asp-controller="Grade" asp-action="GradeList">GradedList</a></li> *@

@@ -40,10 +40,12 @@ namespace SchoolManagementApp.MVC.Controllers
         [HttpPost]
         public async Task<IActionResult> Login(LoginView model)
         {
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
+            Console.WriteLine($"⌚⌚⌚⌚⌚⌚⌚  {model.Username} {model.Password} {model.Role}");
+
+            // if (!ModelState.IsValid)
+            // {
+            //     return View(model);
+            // }
 
         var token = await _authService.Login(model.Username, model.Password, model.Role);
         var user = await _studentRepository.GetUserByUsernameAsync(model.Username);

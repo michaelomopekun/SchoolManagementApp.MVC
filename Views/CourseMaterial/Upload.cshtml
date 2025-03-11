@@ -1,0 +1,27 @@
+@model CourseMaterial
+
+<div class="container">
+    <h2>Upload Course Material</h2>
+
+    <form asp-action="Upload" enctype="multipart/form-data" method="post">
+        <input type="hidden" name="courseId" value="@ViewBag.CourseId" />
+        
+        <div class="form-group mb-3">
+            <label for="title">Title</label>
+            <input type="text" class="form-control" id="title" name="title" required>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="description">Description</label>
+            <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+        </div>
+
+        <div class="form-group mb-3">
+            <label for="file">Select File</label>
+            <input type="file" class="form-control" id="file" name="file" required>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Upload</button>
+        <a asp-action="Index" asp-route-courseId="@ViewBag.CourseId" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>

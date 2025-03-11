@@ -21,6 +21,8 @@ public interface ICourseService
     Task AssigeCourseToLecturerAsync(int lecturerId, List<int>couresIds);  
     
     Task<int> GetTotalStudentsForLecturerAsync(int lecturerId);
+
+    Task <List<Course>> GetLecturerCoursesAsync(int lecturerId);
     
     // Task<IEnumerable<UserCourse>> GetStudentEnrolledInCourseAsync(int courseId);
     

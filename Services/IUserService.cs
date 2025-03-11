@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using SchoolManagementApp.MVC.Models;
 
 public interface IUserService
@@ -11,4 +12,5 @@ public interface IUserService
     Task<IEnumerable<User>> GetAllStudentsAsync();
     Task<IEnumerable<User>> GetAllAdminsAsync();
     Task<IEnumerable<User>> GetStudentsByCoursesAsync(int CourseId);
+    Task GetCurrentUserAsync(ClaimsPrincipal user);
 }

@@ -83,6 +83,16 @@ public class CourseService : ICourseService
         return await _context.Course.Where(c => c.LecturerId == lecturerId).ToListAsync();
     }
 
+    public async Task<List<Course>> GetLecturerCoursesAsync(int lecturerId)
+    {
+        var lecturerCourses = await _context.Course
+        .Include(c => c.CourseMaterials)
+        .Where(uc => uc.LecturerId == lecturerId)
+        .ToListAsync();    
+
+        return lecturerCourses;
+    }
+
     public async Task<List<UserCourse>> GetStudentEnrolledInCourseAsync(int courseId)
     {
         return await _context.UserCourses

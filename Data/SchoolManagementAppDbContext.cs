@@ -15,6 +15,8 @@ public class SchoolManagementAppDbContext : DbContext
     public DbSet<Permission> Permissions { get; set; }
     public DbSet<UserCourse> UserCourses { get; set; }
     public DbSet<Grade> Grades { get; set; }
+    public DbSet<CourseMaterial> CourseMaterials { get; set; }
+    public DbSet<CourseMaterialDownload> CourseMaterialDownloads { get; set; }
     // public DbSet<GradeReport> GradeReports { get; set; }
 
     public SchoolManagementAppDbContext(DbContextOptions<SchoolManagementAppDbContext> options) : base(options) { }
@@ -112,6 +114,13 @@ public class SchoolManagementAppDbContext : DbContext
                 .HasForeignKey(c => c.LecturerId)
                 .IsRequired()
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // // configuration for CourseMaterials
+            // entity.HasMany(c => c.CourseMaterial)
+            //     .WithOne(cm => cm.Course)
+            //     .HasForeignKey(cm => cm.CourseId)
+            //     .OnDelete(DeleteBehavior.Restrict);
+
         });
 
         // Grade configuration
@@ -139,6 +148,48 @@ public class SchoolManagementAppDbContext : DbContext
             entity.Property(g => g.GradedDate)
                 .IsRequired()
                 .HasDefaultValueSql("GETUTCDATE()");
+        });
+
+        modelBuilder.Entity<CourseMaterial>(entity => 
+        {
+            entity.ToTable("CourseMaterials");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Title).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.FileName).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.FileContent).IsRequired();
+            entity.Property(e => e.ContentType).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.UploadDate).IsRequired().HasDefaultValueSql("GETUTCDATE()");
+            // entity.Property(e => e.Uploader).IsRequired();
+
+            entity.HasOne(e => e.Course)
+                .WithMany(c => c.CourseMaterials)
+                .HasForeignKey(c => c.CourseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Uploader)
+                .WithMany()
+                .HasForeignKey(u => u.UploaderId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<CourseMaterialDownload>(entity =>
+        {
+            entity.ToTable("CourseMaterialDownloads");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.StudentId).IsRequired();
+            entity.Property(e => e.DownloadDate).IsRequired().HasDefaultValueSql("GETUTCDATE()");
+
+            entity.HasOne(e => e.CourseMaterial)
+                .WithMany(d => d.Downloads)
+                .HasForeignKey(c => c.CourseMaterialId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Student)
+                .WithMany()
+                .HasForeignKey(s => s.StudentId)
+                .OnDelete(DeleteBehavior.NoAction);
         });
     }
 }

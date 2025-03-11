@@ -1,0 +1,27 @@
+@model IEnumerable<CourseMaterialDownload>
+
+<div class="container">
+    <h2>Download History</h2>
+
+    <div class="table-responsive">
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Download Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var download in Model)
+                {
+                    <tr>
+                        <td>@download.Student.Username</td>
+                        <td>@download.DownloadDate.ToString("g")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+</div>

@@ -141,6 +141,7 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IGradeService, GradeService>();
 builder.Services.AddScoped<IGradeService, GradeService>();
 builder.Services.AddScoped<IGradeReportService, GradeReportService>();
+builder.Services.AddScoped<ICourseMaterialService, CourseMaterialService>();
 builder.Services.AddLogging(loggingBuilder =>
     {
         loggingBuilder.AddConsole();
