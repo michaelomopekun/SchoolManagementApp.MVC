@@ -24,6 +24,8 @@ public interface ICourseService
 
     Task <List<Course>> GetLecturerCoursesAsync(int lecturerId);
     
+    Task<List<Course>> GetStudentEnrolledInCoursewithMaterialAsync(int studentId);
+
     // Task<IEnumerable<UserCourse>> GetStudentEnrolledInCourseAsync(int courseId);
     
     // Task<IEnumerable<Course>> GetAvailableCoursesAsync();

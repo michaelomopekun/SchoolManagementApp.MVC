@@ -4,6 +4,16 @@
     ViewData["Title"] = "Edit Grade";
 }
 
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
 <div class="container mt-4">
     <h2>Edit Grade</h2>
 

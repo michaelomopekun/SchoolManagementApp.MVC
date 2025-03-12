@@ -136,4 +136,16 @@ public class CourseService : ICourseService
     {
         await _courseRepository.UpdateAsync(course);
     }
+
+    public async Task<List<Course>> GetStudentEnrolledInCoursewithMaterialAsync(int studentId)
+    {
+    var enrolledCourses = await _context.UserCourses
+        .Include(uc => uc.Course)
+        .ThenInclude(c => c.CourseMaterials)
+        .Where(uc => uc.UserId == studentId && uc.Status == EnrollmentStatus.Active)
+        .Select(uc => uc.Course)
+        .ToListAsync();
+
+    return enrolledCourses;
+    }
 }

@@ -2,13 +2,15 @@
 
 <h2>My Enrolled Courses</h2>
 
-@* @if (!Model.Any())
+@if (TempData["Success"] != null)
 {
-    <div class="alert alert-info">
-        You are not enrolled in any courses yet.
-    </div>
+    <div class="alert alert-success">@TempData["Success"]</div>
 }
-else *@
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
 
     <table class="table">
         <thead>

@@ -33,6 +33,8 @@ else if (User.IsInRole("Student"))
             <li><a class="dropdown-item" asp-controller="Student" asp-action="MyGrades" asp-route-userId="@User.FindFirst("UserId")?.Value">My Grades</a></li>
             <li><a class="dropdown-item" asp-controller="Course" asp-action="CourseList">Available Courses</a></li>
             <li><a class="dropdown-item" asp-controller="Course" asp-action="MyEnrollments">My Enrollments</a></li>
+            <li><a class="dropdown-item" asp-controller="CourseMaterial" asp-action="Index">Course Materials</a></li>
+
         </ul>
     </li>
 }

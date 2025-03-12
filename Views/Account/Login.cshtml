@@ -3,6 +3,16 @@
     ViewData["Title"] = "Login";
 }
 
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-4 md-4">

@@ -25,14 +25,26 @@ public class CourseMaterialController : Controller
         var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
         Console.WriteLine("⌚⌚⌚⌚⌚⌚the user id is {currentUserId}");
 
-        var LecturerCourses = await _courseService.GetLecturerCoursesAsync(currentUserId);
-
-        foreach (var course in LecturerCourses)
+        // var LecturerCourses = await _courseService.GetLecturerCoursesAsync(currentUserId);
+        if (User.IsInRole("Lecturer"))
         {
-            Console.WriteLine($"⌚⌚⌚⌚⌚⌚the course id is {course.Id}");
+            var lecturerCourses = await _courseService.GetLecturerCoursesAsync(currentUserId);
+            return View("~/Views/CourseMaterial/Index.cshtml", lecturerCourses);
         }
-        // ViewBag.CourseId = courseId;
-        return View("~/Views/CourseMaterial/Index.cshtml",LecturerCourses);
+        else
+        {
+            // Get enrolled courses for student
+            var studentCourses = await _courseService.GetStudentEnrolledInCoursewithMaterialAsync(currentUserId);
+
+            foreach (var course in studentCourses)
+            {
+                Console.WriteLine($"⌚⌚⌚⌚⌚⌚the course id is {course.Id}");
+            }
+            return View("~/Views/CourseMaterial/StudentIndex.cshtml", studentCourses);
+        }
+        // 
+        // // ViewBag.CourseId = courseId;
+        // return View("~/Views/CourseMaterial/Index.cshtml",LecturerCourses);
     }
 
     [HttpGet]
