@@ -181,4 +181,14 @@ public class CourseMaterialService : ICourseMaterialService
         await _context.SaveChangesAsync();
     
     }
+
+    public async Task<IEnumerable<CourseMaterialDownload>> GetStudentsDownloadHistoryAsync(int userId)
+    {
+        var studentDownloads = await _context.CourseMaterialDownloads
+            .Include(d => d.CourseMaterial)
+            .Where(d => d.StudentId == userId)
+            .ToListAsync();
+        
+        return studentDownloads;
+    }
 }

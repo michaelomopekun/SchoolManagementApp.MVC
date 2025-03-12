@@ -60,6 +60,8 @@ namespace SchoolManagementApp.MVC.Controllers
         var jwtToken = _jwtService.GenerateToken(user.Id, user.Username, model.Role.ToString(), permissions);
 
         Console.WriteLine($"⌚⌚⌚⌚⌚⌚⌚  {jwtToken}");
+        
+        var userToGetRole = await _studentRepository.GetUserByUsernameAsync(model.Username);
 
             // Extract claims from JWT token
         var claims = new List<Claim>
@@ -75,14 +77,27 @@ namespace SchoolManagementApp.MVC.Controllers
             IsPersistent = true
         };
 
+
         // await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity), authProperties);
 
         //store token in session
         HttpContext.Session.SetString("JWTToken", token);
         HttpContext.Session.SetString("Role", model.Role.ToString());
 
-        return RedirectToAction("Index", "Home");
+
+        switch (userToGetRole.Role.ToString().ToLower())
+        {
+            case "lecturer":
+                return RedirectToAction("Dashboard", "Lecturer");
+            case "student":
+                return RedirectToAction("Dashboard", "Student");
+            // case "admin":
+            //     return RedirectToAction("Dashboard", "Admin");
+            default:
+                return RedirectToAction("Index", "Home");
         }
+    }
+
 
         [HttpPost]
         public IActionResult RoleSelect(string selectedRole)

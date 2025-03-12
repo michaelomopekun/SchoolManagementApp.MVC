@@ -17,6 +17,7 @@ namespace SchoolManagementApp.MVC.Models
         [Display(Name = "Course")]
         public int CourseId { get; set; }
         public virtual Course Course { get; set; }
+        // public virtual CourseMaterial CourseMaterial { get; set; }
 
         [Required]
         public string CourseName {get;set;}
@@ -116,103 +117,4 @@ namespace SchoolManagementApp.MVC.Models
         
     }
 
-    // public class GradeReport
-    // {
-    //     [Key]
-    //     public int Id { get; set; }
-
-    //     [Required]
-    //     public int CourseId { get; set; }
-    //     public virtual Course Course { get; set; }
-
-    //     [Required]
-    //     public int StudentId { get; set; }
-    //     public virtual User Student { get; set; }
-
-    //     [Required]
-    //     public int GradeId { get; set; }
-    //     public virtual Grade Grade { get; set; }
-    //     public string Comments { get; set; }
-
-    //     [Required]
-    //     [MaxLength(10)]
-    //     public string AcademicSession { get; set; }
-
-    //     [Required]
-    //     public Semester Semester { get; set; } 
-
-    //     public DateTime GeneratedDate { get; set; }
-
-    //     [NotMapped]
-    //     public string LetterGrade
-    //     {
-    //         get
-    //         {
-    //             if(Grade?.Score == null) return "N/A";
-    //             var score = Grade.Score.Value;
-    //             if(score >= 80) return "A";
-    //             if(score >= 60) return "B";
-    //             if(score >= 50) return "C";
-    //             if(score >= 45) return "D";
-    //             return "F";
-    //         }
-    //     }
-
-    //     public Grade ToDto()
-    //     {
-    //         return new Grade
-    //         {
-    //             // User = User,
-    //             UserId = Grade.UserId,
-    //             CourseId = Grade.CourseId,
-    //             CourseCode = Grade.CourseCode,
-    //             CreditHours = Grade.CreditHours,
-    //             Score = Grade.Score,
-    //             Comments = Grade.Comments,
-    //             // LetterGrade is read-only and cannot be assigned
-    //             Semester = Grade.Semester,
-    //             GeneratedDate = Grade.GeneratedDate,
-    //             AcademicSession = Grade.AcademicSession
-    //         };
-    //     }
-    // }
-
-
-    // public class GradeReportDto
-    // {
-    //     [Display(Name = "Student Name")]
-    //     public string StudentName { get; set; }
-
-    //     [Display(Name = "Student ID")]
-    //     public string StudentId { get; set; }
-
-    //     [Display(Name = "Course")]
-    //     public string CourseName { get; set; }
-
-    //     [Display(Name = "Course Code")]
-    //     public string CourseCode { get; set; }
-
-    //     [Display(Name = "Credit Hours")]
-    //     public string CreditHours { get; set; }
-
-    //     [Display(Name = "Score")]
-    //     public decimal? Score { get; set; }
-
-    //     [Display(Name = "Grade")]
-    //     public string LetterGrade { get; set; }
-
-    //     [Display(Name = "Semester")]
-    //     public string Semester { get; set; }
-
-    //     [Display(Name = "Date Generated")]
-    //     [DisplayFormat(DataFormatString = "{0:dd/MM/yyyy}")]
-    //     public DateTime GeneratedDate { get; set; }
-
-    //     [Display(Name = "Academic Session")]
-    //     public string AcademicSession { get; set; }
-
-    //     [Display(Name = "Comments")]
-    //     public string Comment { get; set; }
-
-    // }
 }

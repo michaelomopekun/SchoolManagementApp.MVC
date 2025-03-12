@@ -11,6 +11,7 @@ public interface ICourseMaterialService
     Task DeleteMaterialAsync(int materialId);
     Task <IEnumerable<CourseMaterial>> GetMaterialsByUploaderAsync(int uploaderId);
     Task <IEnumerable<CourseMaterial>> GetMaterialsByStudentAsync(int studentId);
+    Task <IEnumerable<CourseMaterialDownload>> GetStudentsDownloadHistoryAsync(int userId);
 
 
 }
