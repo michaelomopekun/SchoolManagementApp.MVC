@@ -36,10 +36,8 @@ jobs:
       - name: Publish
         run: dotnet publish -c Release -o dist
 
-      - name: Copy index.html
-        run: |
-          cp dist/wwwroot/index.html dist/wwwroot/404.html
-          echo "/* /index.html 200" > dist/wwwroot/_redirects
+      - name: Create .nojekyll file
+        run: touch dist/.nojekyll
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
