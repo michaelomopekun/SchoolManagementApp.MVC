@@ -57,6 +57,12 @@ public class CourseService : ICourseService
         {
             throw new ArgumentException("Course not found");
         }
+
+        if(course.Grades != null && course.Grades.Any())
+        {
+            throw new ArgumentException("Course has grades, cannot delete courses with existing grades");
+        }
+        
         await _courseRepository.DeleteAsync(Id);
     }
 
@@ -147,5 +153,12 @@ public class CourseService : ICourseService
         .ToListAsync();
 
     return enrolledCourses;
+    }
+
+    public Task<int> GetTotalCoursesCountAsync()
+    {
+        var totalCourses = _context.Course.CountAsync();
+        
+        return totalCourses;
     }
 }

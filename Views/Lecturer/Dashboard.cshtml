@@ -8,48 +8,60 @@
 
     <div class="row mt-4">
         <!-- Courses Overview Card -->
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
+<div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 bg-primary text-white">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
                     <h5 class="card-title">
-                        <i class="bi bi-book"></i> My Courses
+                        <i class="bi bi-book-fill"></i> My Courses
                     </h5>
                     <h3 class="display-4">@Model.TotalCourses</h3>
-                    <p class="text-muted">Courses you're teaching</p>
-                    <a asp-controller="Lecturer" asp-action="MyCourses" class="btn btn-primary">
+                    <p class="text-white-50">Courses you're teaching</p>
+                    <a asp-controller="Lecturer" asp-action="MyCourses" class="btn btn-dark">
                         View Courses
                     </a>
                 </div>
+                <i class="bi bi-book-fill fa-3x opacity-25"></i>
             </div>
         </div>
+    </div>
+</div>
 
         <!-- Students Overview Card -->
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
+<div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 bg-success text-white">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
                     <h5 class="card-title">
-                        <i class="bi bi-people"></i> Total Students
+                        <i class="bi bi-people-fill"></i> Total Students
                     </h5>
                     <h3 class="display-4">@Model.TotalStudents</h3>
-                    <p class="text-muted">Enrolled in your courses</p>
-                    <a asp-controller="Lecturer" asp-action="MyCourses" class="btn btn-primary">
+                    <p class="text-white-50">Enrolled in your courses</p>
+                    <a asp-controller="Lecturer" asp-action="MyCourses" class="btn btn-dark">
                         View Students
                     </a>
                 </div>
+                <i class="bi bi-people-fill fa-3x opacity-25"></i>
             </div>
         </div>
+    </div>
+</div>
 
         <!-- Grading Overview Card -->
-        <div class="col-md-6 col-lg-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
+<div class="col-md-6 col-lg-4 mb-4">
+    <div class="card h-100 bg-info text-white">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
                     <h5 class="card-title">
-                        <i class="bi bi-check2-circle"></i> Grading Status
+                        <i class="bi bi-check2-circle-fill"></i> Grading Status
                     </h5>
                     <h3 class="display-4">@Model.GradedStudents/@Model.TotalStudents</h3>
-                    <p class="text-muted">Students graded</p>
-                    <div class="progress mb-3">
-                        <div class="progress-bar" role="progressbar" 
+                    <p class="text-white-50">Students graded</p>
+                    <div class="progress mb-3 bg-white bg-opacity-25">
+                        <div class="progress-bar bg-dark" role="progressbar" 
                              style="width: @(Model.GradingProgress)%"
                              aria-valuenow="@Model.GradingProgress" 
                              aria-valuemin="0" 
@@ -58,9 +70,11 @@
                         </div>
                     </div>
                 </div>
+                <i class="bi bi-check2-circle-fill fa-3x opacity-25"></i>
             </div>
         </div>
     </div>
+</div>
 
     <!-- Recent Activity -->
     <div class="row mt-4">
@@ -103,3 +117,33 @@
         </div>
     </div>
 </div>
+
+
+
+@section Styles {
+    <style>
+        .card {
+            transition: transform 0.2s;
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            overflow: hidden;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+        }
+        .card .bi {
+            transition: transform 0.3s;
+        }
+        .card:hover .bi {
+            transform: scale(1.1);
+        }
+        .progress {
+            height: 10px;
+            border-radius: 5px;
+        }
+        .display-4 {
+            font-size: 2.5rem;
+            font-weight: 500;
+        }
+    </style>
+}

@@ -9,6 +9,8 @@ public interface ICourseService
     Task DeleteCourseAsync(int Id);
     
     Task UpdateCourseAsync(Course course);
+
+    Task<int> GetTotalCoursesCountAsync();
     
     Task <List<UserCourse>> GetUserEnrolledCourseAsync();
     

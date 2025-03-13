@@ -118,4 +118,23 @@ public class UserService : IUserService
         
         return currentUser;
     }
+
+    public async Task<int> GetTotalStudentsCountAsync()
+    {
+        var totalUserCount = await _context.Users
+            .Where(u => u.Role == UserRole.Student)
+            .CountAsync();
+
+        return totalUserCount;
+    }
+
+    public async Task<int> GetTotalLecturersCountAsync()
+    {
+        var totalUserCount = await _context.Users
+            .Where(u => u.Role == UserRole.Lecturer)
+            .CountAsync();
+            
+        return totalUserCount;
+    }
+
 }

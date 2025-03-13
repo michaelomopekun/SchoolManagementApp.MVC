@@ -94,7 +94,7 @@ namespace SchoolManagementApp.MVC.Controllers
             return View(course);
         }
         [HttpGet]
-        [Authorize(Roles = "Admin,Lecturer")] 
+        [Authorize(Roles = "Admin")] 
         public async Task<IActionResult> Delete(int Id)
         {
             var course = await _courseRepository.GetCourseByIdAsync(Id);
@@ -105,12 +105,25 @@ namespace SchoolManagementApp.MVC.Controllers
             return  View(course);
         }
         [HttpPost, ActionName("Delete")]
-        [Authorize(Roles = "Admin,Lecturer")]
+        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int Id)
         {
-            // await 
-            await _courseService.DeleteCourseAsync(Id);
-            return RedirectToAction(nameof(CourseList));
+            try
+            {
+                await _courseService.DeleteCourseAsync(Id);
+                TempData["Success"] = "Course deleted successfully";
+                return RedirectToAction(nameof(CourseList));
+            }
+            catch (Exception)
+            {
+                    TempData["Error"] = "This course has grades and cannot be deleted.";
+                    return RedirectToAction(nameof(CourseList));
+            }
+            // catch (Exception ex)
+            // {
+            //     TempData["Error"] = $"Failed to delete course. Please try again: {ex}";
+            //     return RedirectToAction(nameof(CourseList));
+            // }
             
         }
 

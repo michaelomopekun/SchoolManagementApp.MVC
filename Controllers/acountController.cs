@@ -91,8 +91,8 @@ namespace SchoolManagementApp.MVC.Controllers
                 return RedirectToAction("Dashboard", "Lecturer");
             case "student":
                 return RedirectToAction("Dashboard", "Student");
-            // case "admin":
-            //     return RedirectToAction("Dashboard", "Admin");
+            case "admin":
+                return RedirectToAction("Dashboard", "Admin");
             default:
                 return RedirectToAction("Index", "Home");
         }
