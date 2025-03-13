@@ -23,9 +23,10 @@ public class StudentController : Controller
     }
 
     [HttpGet]
-    [Authorize(Roles = "Admin,Lecturer,Student")]
+    [Authorize(Roles = "Student")]
     public async Task<IActionResult> Dashboard()
     {
+        try{
         var userId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier).Value);
 
         if (userId == null)
@@ -52,10 +53,16 @@ public class StudentController : Controller
             EnrolledCourses = enrolledCourses,
             TotalMaterials = materials.Count(),
             AverageGrade = (double?)grades.Average(g => g.Score),
-            RecentActivities = await GetRecentActivities(userId)
+            RecentActivities = await GetRecentActivities(userId),
+            Gpa = await _gradeService.GenerateGradePointAverage(userId)
         };
 
         return View("~/Views/Student/Dashboard.cshtml", viewModel);
+        }catch(Exception ex)
+        {
+            TempData["Error"] = $"Error loading dashboard";
+            return RedirectToAction("Index", "Home");
+        }
     }
 
     [HttpGet]

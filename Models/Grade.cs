@@ -55,6 +55,18 @@ namespace SchoolManagementApp.MVC.Models
             }
         }
 
+        public int GradePoint {get;set;}
+            // get
+            // {
+            //     if (CreditHours == "1" && Score >= 80) return 5;
+            //     if (CreditHours == "1" && Score >= 60) return 4;
+            //     if (CreditHours == "1" && Score >= 50) return 3;
+            //     if (CreditHours == "1" && Score >= 45) return 2;
+            //     if (CreditHours == "1" && Score >= 40) return 1;
+
+            // }
+        // }
+
         [MaxLength(500)]
         public string? Comments { get; set; }
 

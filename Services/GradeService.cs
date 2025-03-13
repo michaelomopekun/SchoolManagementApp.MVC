@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SchoolManagementApp.MVC.Repository;
 
 namespace SchoolManagementApp.MVC.Models{
 public class GradeService : IGradeService
@@ -6,12 +7,16 @@ public class GradeService : IGradeService
     private readonly SchoolManagementAppDbContext _context;
     private readonly ILogger<GradeService> _logger;
     private readonly ICourseService _courseService;
+    // private readonly IEnrollmentRepository _enrollmentRepository;
+    // private readonly IGradeService _gradeService;
 
     public GradeService(SchoolManagementAppDbContext context, ILogger<GradeService> logger, ICourseService courseService)
     {
         _context = context;
         _logger = logger;
         _courseService = courseService;
+        // _gradeService = gradeService;
+        // _enrollmentRepository = enrollmentRepository;
     }
 
     public async Task AddGradeAsync(Grade grade)
@@ -67,6 +72,7 @@ public class GradeService : IGradeService
                 grade.CreditHours = course.Credit;
                 grade.CourseName = course.Name;
                 grade.Semester = Semester.FirstSemester;
+                grade.GradePoint = GenerateGradePoint(grade.Score, course.Credit);
 
                 await _context.SaveChangesAsync();
 
@@ -148,6 +154,7 @@ public class GradeService : IGradeService
                 existingGrade.Score = grade.Score;
                 existingGrade.Comments = grade.Comments;
                 existingGrade.GradedDate = DateTime.UtcNow;
+                existingGrade.GradePoint = GenerateGradePoint(existingGrade.Score, existingGrade.CreditHours);
 
                 _context.Entry(existingGrade).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
@@ -229,6 +236,79 @@ public class GradeService : IGradeService
                 // Comments = g.Comments,
                 // GradedDate = g.GradedDate
             }).ToListAsync();
+        }
+
+        public int GenerateGradePoint(decimal? score, string creditHours)
+        {
+            try
+            {
+                if (score != null && creditHours != null)
+                {
+                    if (score >= 80 && creditHours == "1") return 6;
+                    if (score >= 60 && score < 80 && creditHours == "1") return 5;
+                    if (score >= 50 && score < 60 && creditHours == "1") return 3;
+                    if (score >= 45 && score < 50 && creditHours == "1") return 2;
+                    if (score >= 40 && score < 45 && creditHours == "1") return 1;
+                    if (score < 40 && creditHours == "1") return 0;
+
+                    if (score >= 80 && creditHours == "2") return 10;
+                    if (score >= 60 && score < 80 && creditHours == "2") return 8;
+                    if (score >= 50 && score < 60 && creditHours == "2") return 6;
+                    if (score >= 45 && score < 50 && creditHours == "2") return 4;
+                    if (score >= 40 && score < 45 && creditHours == "2") return 2;
+                    if (score < 40 && creditHours == "2") return 0;
+
+                    if (score >= 80 && creditHours == "3") return 15;
+                    if (score >= 60 && score < 80 && creditHours == "3") return 12;
+                    if (score >= 50 && score < 60 && creditHours == "3") return 9;
+                    if (score >= 45 && score < 50 && creditHours == "3") return 6;
+                    if (score >= 40 && score < 45 && creditHours == "3") return 3;
+                    if (score < 40 && creditHours == "3") return 0;
+                }
+                
+                throw new InvalidOperationException("Score and credit hours cannot be null");
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine($"Error generating grade point: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<decimal> GenerateGradePointAverage(int StudentId)
+        {
+            try{
+            var grades = await _context.Grades
+                .Where(g => g.UserId == StudentId)
+                .ToListAsync();
+
+            decimal studentsGradePoint = 0;
+            decimal totalEarnablePoints = 0;
+            decimal achivableGradePointAverage = 5;
+
+            foreach(var grade in grades)
+            {
+                studentsGradePoint += grade.GradePoint;
+                int Points = int.Parse(grade.CreditHours);
+
+                if(Points == 1)
+                    totalEarnablePoints += 6;
+                if(Points == 2)
+                    totalEarnablePoints += 10;
+                if(Points == 3)
+                    totalEarnablePoints += 15;
+
+                
+            }
+            
+            var gpa = (studentsGradePoint / totalEarnablePoints)*achivableGradePointAverage;
+            
+            return decimal.Round(gpa, 2, MidpointRounding.AwayFromZero);
+            }
+            catch(Exception ex)
+            {
+                throw new InvalidOperationException($"Error generating grade point average: {ex.Message}");
+            }
         }
     }
 }

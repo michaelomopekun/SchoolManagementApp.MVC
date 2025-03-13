@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace SchoolManagementApp.MVC.Migrations
 {
     [DbContext(typeof(SchoolManagementAppDbContext))]
-    [Migration("20250310105008_AddCourseMaterialSystem")]
-    partial class AddCourseMaterialSystem
+    [Migration("20250313125011_initialcreate")]
+    partial class initialcreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -80,14 +80,14 @@ namespace SchoolManagementApp.MVC.Migrations
                         .IsRequired()
                         .HasColumnType("varbinary(max)");
 
-                    b.Property<string>("FileSize")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FullName")
+                    b.Property<string>("FileName")
                         .IsRequired()
                         .HasMaxLength(255)
                         .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("FileSize")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -170,6 +170,9 @@ namespace SchoolManagementApp.MVC.Migrations
                     b.Property<string>("CreditHours")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("GradePoint")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("GradedDate")
                         .ValueGeneratedOnAdd()
@@ -333,7 +336,7 @@ namespace SchoolManagementApp.MVC.Migrations
             modelBuilder.Entity("SchoolManagementApp.MVC.Models.CourseMaterial", b =>
                 {
                     b.HasOne("SchoolManagementApp.MVC.Models.Course", "Course")
-                        .WithMany()
+                        .WithMany("CourseMaterials")
                         .HasForeignKey("CourseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -427,6 +430,8 @@ namespace SchoolManagementApp.MVC.Migrations
 
             modelBuilder.Entity("SchoolManagementApp.MVC.Models.Course", b =>
                 {
+                    b.Navigation("CourseMaterials");
+
                     b.Navigation("EnrolledUsers");
 
                     b.Navigation("Grades");

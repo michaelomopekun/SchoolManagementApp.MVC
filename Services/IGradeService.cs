@@ -20,5 +20,9 @@ public interface IGradeService
     Task<IEnumerable<Grade>> GetRecentGradesForLecturerAsync(int lecturerId, int count);
 
     Task<List<Grade>> GetFilteredGradesAsync(GradeFilterViewModel filter); 
+
+   int GenerateGradePoint(decimal? score, string creditHours);
+   
+   Task<decimal> GenerateGradePointAverage(int StudentId);
 }
 }

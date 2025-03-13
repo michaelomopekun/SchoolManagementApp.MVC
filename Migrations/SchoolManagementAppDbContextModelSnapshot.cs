@@ -160,9 +160,6 @@ namespace SchoolManagementApp.MVC.Migrations
                     b.Property<int>("CourseId")
                         .HasColumnType("int");
 
-                    b.Property<int>("CourseMaterialId")
-                        .HasColumnType("int");
-
                     b.Property<string>("CourseName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -170,6 +167,9 @@ namespace SchoolManagementApp.MVC.Migrations
                     b.Property<string>("CreditHours")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("GradePoint")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("GradedDate")
                         .ValueGeneratedOnAdd()
@@ -189,8 +189,6 @@ namespace SchoolManagementApp.MVC.Migrations
                     b.HasKey("GradeId");
 
                     b.HasIndex("CourseId");
-
-                    b.HasIndex("CourseMaterialId");
 
                     b.HasIndex("UserId");
 
@@ -378,12 +376,6 @@ namespace SchoolManagementApp.MVC.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("SchoolManagementApp.MVC.Models.CourseMaterial", "CourseMaterial")
-                        .WithMany()
-                        .HasForeignKey("CourseMaterialId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("SchoolManagementApp.MVC.Models.User", "User")
                         .WithMany("Grades")
                         .HasForeignKey("UserId")
@@ -391,8 +383,6 @@ namespace SchoolManagementApp.MVC.Migrations
                         .IsRequired();
 
                     b.Navigation("Course");
-
-                    b.Navigation("CourseMaterial");
 
                     b.Navigation("User");
                 });

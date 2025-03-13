@@ -9,6 +9,7 @@ namespace SchoolManagementApp.MVC.Models
         public decimal GradingProgress => TotalStudents == 0 ? 0 : 
             (decimal)GradedStudents / TotalStudents * 100;
         public IEnumerable<Grade> RecentGrades { get; set; } = new List<Grade>();
+        public decimal Gpa { get; set; }
 
         public int StudentId { get; set; }
         public string StudentName { get; set; }
