@@ -34,10 +34,24 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Publish
-        run: dotnet publish -c Release -o dist
+        run: dotnet publish -c Release -o dist --no-build /p:UseAppHost=false
+
+      - name: Generate index.html
+        run: |
+          echo '<!DOCTYPE html>
+          <html>
+          <head>
+              <meta http-equiv="refresh" content="0;url=/SchoolManagementApp.MVC/Account/Login">
+          </head>
+          <body>
+              <p>Please wait while you are redirected...</p>
+          </body>
+          </html>' > dist/wwwroot/index.html
 
       - name: Create .nojekyll file
-        run: touch dist/.nojekyll
+        run: |
+          touch dist/.nojekyll
+          touch dist/wwwroot/.nojekyll
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
@@ -45,7 +59,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: './dist'
+          path: './dist/wwwroot'
 
   deploy:
     needs: build
