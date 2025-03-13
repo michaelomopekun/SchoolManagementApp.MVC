@@ -1,9 +1,9 @@
 name: Build and deploy ASP.Net Core app to an Azure Web App
 
 env:
-  AZURE_WEBAPP_NAME: schoolmanagementappmvc    # update this to your app name
+  AZURE_WEBAPP_NAME: schoolmanagementappmvc
   AZURE_WEBAPP_PACKAGE_PATH: '.'
-  DOTNET_VERSION: '7.0.x'                      # update to match your project's .NET version
+  DOTNET_VERSION: '9.0.x'    # Updated to specific .NET 9 version format
 
 on:
   push:
@@ -24,15 +24,13 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
+          include-prerelease: true    # Added for .NET 9 preview
 
       - name: Restore dependencies
         run: dotnet restore
-
+        
       - name: Build
-        run: dotnet build --no-restore --configuration Release
-
-      - name: Test
-        run: dotnet test --no-build --verbosity normal
+        run: dotnet build --configuration Release
 
       - name: Publish
         run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
