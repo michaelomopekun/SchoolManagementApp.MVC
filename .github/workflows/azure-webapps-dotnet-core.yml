@@ -12,6 +12,7 @@ permissions:
   contents: write
   pages: write
   id-token: write
+  deployments: write
 
 jobs:
   build:
@@ -37,11 +38,14 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
+        with:
+          enablement: true  # Enable GitHub Pages during the workflow
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: './dist/wwwroot'
+          retention-days: 1
 
   deploy:
     needs: build
