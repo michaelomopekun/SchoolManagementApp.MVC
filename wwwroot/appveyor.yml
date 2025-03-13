@@ -1,0 +1,18 @@
+version: '{branch}-{build}'
+image: Visual Studio 2022
+
+branches:
+  only:
+    - main
+
+before_build:
+  - dotnet restore SchoolManagementApp.MVC.csproj
+
+build:
+  verbosity: minimal
+  project: SchoolManagementApp.MVC.csproj
+  publish_wap: false
+
+test:
+  assemblies:
+    - '**\*.Tests.dll'
