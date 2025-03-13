@@ -34,14 +34,15 @@ jobs:
         run: dotnet build --configuration Release --no-restore
 
       - name: Publish
-        run: dotnet publish -c Release -o dist --no-build /p:UseAppHost=false
+        run: dotnet publish -c Release -o dist
 
       - name: Generate index.html
         run: |
+          mkdir -p dist/wwwroot
           echo '<!DOCTYPE html>
           <html>
           <head>
-              <meta http-equiv="refresh" content="0;url=/SchoolManagementApp.MVC/Account/Login">
+              <meta http-equiv="refresh" content="0;url=/Account/Login">
           </head>
           <body>
               <p>Please wait while you are redirected...</p>
@@ -49,9 +50,7 @@ jobs:
           </html>' > dist/wwwroot/index.html
 
       - name: Create .nojekyll file
-        run: |
-          touch dist/.nojekyll
-          touch dist/wwwroot/.nojekyll
+        run: touch dist/.nojekyll
 
       - name: Setup Pages
         uses: actions/configure-pages@v4

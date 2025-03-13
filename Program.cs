@@ -174,7 +174,7 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Account}/{action=Login}/{id?}");
 
-// app.MapFallbackToFile("index.html");
+app.MapFallbackToFile("index.html");
 // app.Urls.Add("http://localhost:5000");
 // app.Urls.Add("https://localhost:7001");
 
