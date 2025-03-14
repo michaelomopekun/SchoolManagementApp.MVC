@@ -20,5 +20,7 @@ namespace SchoolManagementApp.MVC.Models
 
         [Required(ErrorMessage = "Please select a role")]
         public UserRole Role { get; set; }
+
+        public Level Level { get; set; }
     }
 }

@@ -54,11 +54,20 @@ namespace SchoolManagementApp.MVC.Services
                 return null;
             }
 
+            var level = Level.LevelNoneStudent;
+
+            if(role == UserRole.Student)
+            {
+                level = Level.Level100;
+            }
+            
+
             var newUser = new User
             {
                 Username = model.Username,
                 Password = model.Password, // TODO: Add password hashing
                 Role = role,
+                Level = level
                 // CreatedAt = DateTime.UtcNow
             };
 
@@ -94,7 +103,7 @@ namespace SchoolManagementApp.MVC.Services
                 .Select(joined => joined.Permission.permission_name)
                 .ToListAsync();
 
-    return permissions ?? new List<string>();
+            return permissions ?? new List<string>();
         }
 
 

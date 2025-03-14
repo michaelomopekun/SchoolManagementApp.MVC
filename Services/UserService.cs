@@ -29,11 +29,18 @@ public class UserService : IUserService
                 .Include(u => u.EnrolledCourses)
                 .FirstOrDefaultAsync(u => u.Id == user.Id);
 
+            var level = Level.LevelNoneStudent;
+            if(user.Role == UserRole.Student)
+            {
+                level = Level.Level100;
+            }
+
             if (existingUser != null)
             {
                 // Only update specific fields
                 existingUser.Username = user.Username;
                 existingUser.Role = user.Role;
+                existingUser.Level = level;
                 
                 // Mark as modified
                 _context.Entry(existingUser).State = EntityState.Modified;

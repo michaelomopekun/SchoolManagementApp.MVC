@@ -19,6 +19,8 @@ public class User : IUser
     [Required]
     public UserRole Role { get; set; }
 
+    public Level Level { get; set; }
+
     public virtual ICollection<UserCourse> EnrolledCourses { get; set; } = new List<UserCourse>();
     public virtual ICollection<Grade> Grades { get; set; }
     public virtual ICollection<Course> TaughtCourses{ get; set; }
@@ -59,4 +61,17 @@ public class Role
 
     public virtual ICollection<RolePermission> RolePermissions { get; set; }
 }
+
+public enum Level
+{
+    LevelNoneStudent = 0,
+    Level100 = 100,
+    Level200 = 200,
+    Level300 = 300,
+    Level400 = 400,
+    Level500 = 500,
+    Level600 = 600,
+    Level700 = 700,
+}
+
 }
