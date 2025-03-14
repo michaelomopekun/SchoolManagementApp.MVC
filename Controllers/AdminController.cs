@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SchoolManagementApp.MVC.Authorization;
 using SchoolManagementApp.MVC.Models;
+using SchoolManagementApp.MVC.Services;
 
 namespace SchoolManagementApp.MVC.Controllers
 {
@@ -13,13 +14,16 @@ namespace SchoolManagementApp.MVC.Controllers
         private readonly ICourseService _courseService;
         private readonly ICourseMaterialService _materialService;
         private readonly IGradeService _gradeService;
+        private readonly IAcademicSettingService _academicSettingService;
 
-        public AdminController(IUserService userService, ICourseService courseService, ICourseMaterialService materialService, IGradeService gradeService)
+
+        public AdminController(IUserService userService, ICourseService courseService, ICourseMaterialService materialService, IGradeService gradeService, IAcademicSettingService academicSettingService)
         {
             _userService = userService;
             _courseService = courseService;
             _materialService = materialService;
             _gradeService = gradeService;
+            _academicSettingService = academicSettingService;
         }
 
         [HttpGet]
@@ -49,7 +53,7 @@ namespace SchoolManagementApp.MVC.Controllers
                 {
                     new QuickAction { Title = "Manage Users", Action = "ManageUsers", Controller = "Admin", Icon = "fas fa-users" },
                     new QuickAction { Title = "Manage Courses", Action = "CourseList", Controller = "Course", Icon = "fas fa-book" },
-                    new QuickAction { Title = "View Reports", Action = "Index", Controller = "Report", Icon = "fas fa-chart-bar" }
+                    new QuickAction { Title = "Settings", Action = "AcademicSettings", Controller = "Admin", Icon = "fas fa-cog" }
                 }
             };
 
@@ -209,5 +213,24 @@ namespace SchoolManagementApp.MVC.Controllers
                 return Enumerable.Empty<StudentActivity>();
             }
         }
+
+
+            public async Task<IActionResult> AcademicSettings()
+            {
+                var settings = await _academicSettingService.GetCurrentSettingsAsync();
+                return View(settings);
+            }
+
+            [HttpPost]
+            public async Task<IActionResult> UpdateAcademicSettings(AcademicSetting model)
+            {
+                if (ModelState.IsValid)
+                {
+                    await _academicSettingService.UpdateSettingsAsync(model);
+                    TempData["Success"] = "Academic settings updated successfully.";
+                    return RedirectToAction(nameof(AcademicSettings));
+                }
+                return View("~/Views/Admin/AcademicSettings.cshtml", model);
     }
+}
 }

@@ -17,6 +17,7 @@ public class SchoolManagementAppDbContext : DbContext
     public DbSet<Grade> Grades { get; set; }
     public DbSet<CourseMaterial> CourseMaterials { get; set; }
     public DbSet<CourseMaterialDownload> CourseMaterialDownloads { get; set; }
+    public DbSet<AcademicSetting> AcademicSettings { get; set; }
     // public DbSet<GradeReport> GradeReports { get; set; }
 
     public SchoolManagementAppDbContext(DbContextOptions<SchoolManagementAppDbContext> options) : base(options) { }

@@ -1,8 +1,9 @@
 @model IEnumerable<SchoolManagementApp.MVC.Models.Grade>
+@inject SchoolManagementApp.MVC.Services.IAcademicSettingService AcademicSettingService
 @{
     ViewData["Title"] = "My Grades";
     @* var User = ViewBag.User; *@
-    
+    var academicSettings = await AcademicSettingService.GetCurrentSettingsAsync();
     var userid = 0;
 }
 
@@ -52,8 +53,8 @@
             <div class="mt-3">
                 <a href="@Url.Action("DownLoadGradeReport", "Grade", new {
                     studentId = userid,
-                    academicSession = "2024/2025", 
-                    semester = SchoolManagementApp.MVC.Models.Semester.FirstSemester 
+                    academicSession = academicSettings.CurrentSession,
+                    semester = academicSettings.CurrentSemester 
                 })" class="btn btn-primary">
                     <i class="fas fa-download"></i> Download Report
                 </a>
