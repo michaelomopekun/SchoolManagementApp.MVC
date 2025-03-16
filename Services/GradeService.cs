@@ -67,11 +67,13 @@ public class GradeService : IGradeService
                 existingEnrollment.gradeStatus = gradeStatus.Graded;
                 _context.Entry(existingEnrollment).State = EntityState.Modified;
 
-                grade.AcademicSession = "2024/2025";
+                var academicSession = await _context.AcademicSettings.FirstOrDefaultAsync();
+
+                grade.AcademicSession = academicSession.CurrentSession;
                 grade.CourseCode = course.Code;
                 grade.CreditHours = course.Credit;
                 grade.CourseName = course.Name;
-                grade.Semester = Semester.FirstSemester;
+                grade.Semester = academicSession.CurrentSemester;
                 grade.GradePoint = GenerateGradePoint(grade.Score, course.Credit);
 
                 await _context.SaveChangesAsync();

@@ -224,6 +224,7 @@ namespace SchoolManagementApp.MVC.Controllers
             [HttpPost]
             public async Task<IActionResult> UpdateAcademicSettings(AcademicSetting model)
             {
+                try{
                 if (ModelState.IsValid)
                 {
                     await _academicSettingService.UpdateSettingsAsync(model);
@@ -231,6 +232,12 @@ namespace SchoolManagementApp.MVC.Controllers
                     return RedirectToAction(nameof(AcademicSettings));
                 }
                 return View("~/Views/Admin/AcademicSettings.cshtml", model);
+                }
+                catch (Exception ex)
+                {
+                    TempData["Error"] = $"An error occurred while updating academic settings.{ex}";
+                    return View("~/Views/Admin/AcademicSettings.cshtml", model);
+                }
     }
 }
 }
