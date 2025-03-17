@@ -60,7 +60,7 @@ public class StudentController : Controller
         return View("~/Views/Student/Dashboard.cshtml", viewModel);
         }catch(Exception ex)
         {
-            TempData["Error"] = $"Error loading dashboard";
+            TempData["Error"] = $"Error loading dashboard{ex}";
             return RedirectToAction("Index", "Home");
         }
     }

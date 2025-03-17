@@ -1,4 +1,3 @@
-// Import necessary namespaces for authentication, database access, and ASP.NET Core configuration.
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -9,6 +8,8 @@ using SchoolManagementApp.MVC.Authorization;
 using SchoolManagementApp.MVC.Models;
 using SchoolManagementApp.MVC.Repository;
 using SchoolManagementApp.MVC.Services;
+using Serilog;
+using Serilog.Events;
 
 // Create a new instance of the WebApplication builder.
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +20,20 @@ if (string.IsNullOrEmpty(secret))
 {
     throw new InvalidOperationException("JWT Secret is not configured properly.");
 }
+
+Log.Logger = new LoggerConfiguration()
+    .MinimumLevel.Debug()
+    .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+    .Enrich.FromLogContext()
+    .WriteTo.Console()
+    .WriteTo.File("Logs/app-.txt", 
+        rollingInterval: RollingInterval.Day,
+        fileSizeLimitBytes: 1024 * 1024,
+        retainedFileCountLimit: 30,
+        outputTemplate: "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level:u3}] {Message:lj}{NewLine}{Exception}")
+    .CreateLogger();
+
+builder.Host.UseSerilog();
 
 // Configure DbContext
 builder.Services.AddDbContext<SchoolManagementAppDbContext>(options =>

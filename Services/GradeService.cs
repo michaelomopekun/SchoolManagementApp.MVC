@@ -299,8 +299,16 @@ public class GradeService : IGradeService
                     totalEarnablePoints += 10;
                 if(Points == 3)
                     totalEarnablePoints += 15;
-
                 
+            }
+
+            if (totalEarnablePoints == 0)
+            {
+                _logger.LogWarning("--------------------------------------------------------------------------------------------------------------------------------------------------------");
+                _logger.LogWarning($"GenerateGradePointAverage : Total earnable points is 0 for student {StudentId}. Returning GPA of 0.");
+                _logger.LogWarning("--------------------------------------------------------------------------------------------------------------------------------------------------------");
+                
+                return 0;
             }
             
             var gpa = (studentsGradePoint / totalEarnablePoints)*achivableGradePointAverage;

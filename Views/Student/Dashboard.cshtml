@@ -13,147 +13,153 @@
     <div class="alert alert-danger">@TempData["Error"]</div>
 }
 
-<div class="container-fluid py-4">
-    <!-- Student Info & Quick Stats -->
-    <div class="row g-3 mb-4">
-        <div class="col-md-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title mb-3">Student Information</h5>
-                    <div class="d-flex align-items-center mb-3">
-                        <div class="avatar-lg me-3">
-                            <i class="fas fa-user-graduate fa-3x text-primary"></i>
-                        </div>
-                        <div>
-                            <h6 class="mb-1">@Model.StudentName</h6>
-                            <p class="text-muted mb-0">ID: @Model.StudentId</p>
-                            <p class="text-muted mb-0">Program: @Model.Program</p>
+
+    <div class="container-fluid py-4">
+        <!-- Student Info & Quick Stats -->
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Student Information</h5>
+                        <div class="d-flex align-items-center mb-3">
+                            <div class="avatar-lg me-3">
+                                <i class="fas fa-user-graduate fa-3x text-primary"></i>
+                            </div>
+                            <div>
+                                <h6 class="mb-1">@Model.StudentName</h6>
+                                <p class="text-muted mb-0">ID: @Model.StudentId</p>
+                                <p class="text-muted mb-0">Program: @Model.Program</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <div class="col-md-8">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <div class="card bg-primary text-white h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">Enrolled Courses</h6>
+                                <h2 class="mb-0">@Model.EnrolledCourses?.Count()</h2>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="card bg-success text-white h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">Course Materials</h6>
+                                <h2 class="mb-0">@Model.TotalMaterials</h2>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-info text-white h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">Average Grade</h6>
+                                <h2 class="mb-0">@(Model.AverageGrade?.ToString("F1") ?? "N/A")</h2>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="card bg-info text-white h-100">
+                            <div class="card-body">
+                                <h6 class="card-title">GPA</h6>
+                                <h2 class="mb-0">@(Model.Gpa.ToString() ?? "N/A")</h2>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
         </div>
+        
+        <!-- Enrolled Courses & Recent Activities -->
+        <div class="row g-3">
+            <div class="col-md-8">
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">My Courses</h5>
+                        <a asp-controller="Course" asp-action="CourseList" class="btn btn-sm btn-primary">
+                            Browse Courses
+                        </a>
+                    </div>
+                    <div class="card-body">
+                        @if (!Model.EnrolledCourses.Any())
+                        {
+                            <p class="text-muted">You are not enrolled in any courses yet.</p>
+                        }
+                        else
+                        {
+                            <div class="list-group">
+                                @foreach (var course in Model.EnrolledCourses)
+                                {
+                                    <div class="list-group-item">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <h6 class="mb-1">@course.Code - @course.Name</h6>
+                                                <small class="text-muted">Lecturer: @course.Lecturer?.Username</small>
+                                            </div>
+                                            <div class="btn-group">
+                                                <a asp-controller="CourseMaterial" asp-action="Index" 
+                                                asp-route-courseId="@course.Id" 
+                                                class="btn btn-sm btn-outline-primary">
+                                                    <i class="fas fa-book"></i> Materials
+                                                </a>
+                                                @* <a asp-controller="Grade" asp-action="MyGrades"
+                                                asp-route-courseId="@course.Id"
+                                                class="btn btn-sm btn-outline-info">
+                                                    <i class="fas fa-star"></i> Grades *@
+                                                @* </a> *@
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
 
-        <div class="col-md-8">
-            <div class="row g-3">
-                <div class="col-md-4">
-                    <div class="card bg-primary text-white h-100">
-                        <div class="card-body">
-                            <h6 class="card-title">Enrolled Courses</h6>
-                            <h2 class="mb-0">@Model.EnrolledCourses.Count()</h2>
-                        </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="mb-0">Recent Activities</h5>
                     </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card bg-success text-white h-100">
-                        <div class="card-body">
-                            <h6 class="card-title">Course Materials</h6>
-                            <h2 class="mb-0">@Model.TotalMaterials</h2>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="card bg-info text-white h-100">
-                        <div class="card-body">
-                            <h6 class="card-title">Average Grade</h6>
-                            <h2 class="mb-0">@(Model.AverageGrade?.ToString("F1") ?? "N/A")</h2>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="col-md-4">
-                    <div class="card bg-info text-white h-100">
-                        <div class="card-body">
-                            <h6 class="card-title">GPA</h6>
-                            <h2 class="mb-0">@(Model.Gpa.ToString() ?? "N/A")</h2>
-                        </div>
+                    <div class="card-body">
+                        @if (!Model.RecentActivities.Any())
+                        {
+                            <p class="text-muted">No recent activities.</p>
+                        }
+                        else
+                        {
+                            <div class="timeline">
+                                @foreach (var activity in Model.RecentActivities)
+                                {
+                                    <div class="timeline-item">
+                                        <div class="timeline-marker @GetActivityColorClass(activity.ActivityType)">
+                                            <i class="@GetActivityIcon(activity.ActivityType)"></i>
+                                        </div>
+                                        <div class="timeline-content">
+                                            <p class="mb-0">@activity.Description</p>
+                                            <small class="text-muted">
+                                                @activity.Date.ToString("MMM dd, yyyy HH:mm")
+                                            </small>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Enrolled Courses & Recent Activities -->
-    <div class="row g-3">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">My Courses</h5>
-                    <a asp-controller="Course" asp-action="CourseList" class="btn btn-sm btn-primary">
-                        Browse Courses
-                    </a>
-                </div>
-                <div class="card-body">
-                    @if (!Model.EnrolledCourses.Any())
-                    {
-                        <p class="text-muted">You are not enrolled in any courses yet.</p>
-                    }
-                    else
-                    {
-                        <div class="list-group">
-                            @foreach (var course in Model.EnrolledCourses)
-                            {
-                                <div class="list-group-item">
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <h6 class="mb-1">@course.Code - @course.Name</h6>
-                                            <small class="text-muted">Lecturer: @course.Lecturer?.Username</small>
-                                        </div>
-                                        <div class="btn-group">
-                                            <a asp-controller="CourseMaterial" asp-action="Index" 
-                                               asp-route-courseId="@course.Id" 
-                                               class="btn btn-sm btn-outline-primary">
-                                                <i class="fas fa-book"></i> Materials
-                                            </a>
-                                            @* <a asp-controller="Grade" asp-action="MyGrades"
-                                               asp-route-courseId="@course.Id"
-                                               class="btn btn-sm btn-outline-info">
-                                                <i class="fas fa-star"></i> Grades *@
-                                            @* </a> *@
-                                        </div>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
 
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="mb-0">Recent Activities</h5>
-                </div>
-                <div class="card-body">
-                    @if (!Model.RecentActivities.Any())
-                    {
-                        <p class="text-muted">No recent activities.</p>
-                    }
-                    else
-                    {
-                        <div class="timeline">
-                            @foreach (var activity in Model.RecentActivities)
-                            {
-                                <div class="timeline-item">
-                                    <div class="timeline-marker @GetActivityColorClass(activity.ActivityType)">
-                                        <i class="@GetActivityIcon(activity.ActivityType)"></i>
-                                    </div>
-                                    <div class="timeline-content">
-                                        <p class="mb-0">@activity.Description</p>
-                                        <small class="text-muted">
-                                            @activity.Date.ToString("MMM dd, yyyy HH:mm")
-                                        </small>
-                                    </div>
-                                </div>
-                            }
-                        </div>
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 @functions {
     private string GetActivityColorClass(string activityType) => activityType switch
