@@ -6,10 +6,13 @@ namespace SchoolManagementApp.MVC.Models
         public int TotalStudents { get; set; }
         public int TotalLecturers { get; set; }
         public int GradedStudents { get; set; }
-        public decimal GradingProgress => TotalStudents == 0 ? 0 : 
+        public decimal GradingProgress => TotalStudents == 0 ? 0 :
             (decimal)GradedStudents / TotalStudents * 100;
         public IEnumerable<Grade> RecentGrades { get; set; } = new List<Grade>();
         public decimal Gpa { get; set; }
+        public string Level { get; set; }
+        public string Session { get; set; }
+        public string Semester { get; set; }
 
         // public virtual 
 
@@ -42,7 +45,7 @@ namespace SchoolManagementApp.MVC.Models
         public string Type { get; set; }
         public string RelatedItemId { get; set; }
         public string IconClass { get; set; }
-    }  
+    }
 
     public class QuickAction
     {

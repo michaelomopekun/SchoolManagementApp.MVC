@@ -30,7 +30,7 @@ public class UserService : IUserService
                 .FirstOrDefaultAsync(u => u.Id == user.Id);
 
             var level = Level.LevelNoneStudent;
-            if(user.Role == UserRole.Student)
+            if (user.Role == UserRole.Student)
             {
                 level = Level.Level100;
             }
@@ -41,7 +41,7 @@ public class UserService : IUserService
                 existingUser.Username = user.Username;
                 existingUser.Role = user.Role;
                 existingUser.Level = level;
-                
+
                 // Mark as modified
                 _context.Entry(existingUser).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
@@ -80,7 +80,7 @@ public class UserService : IUserService
             var activeEnrollments = student.EnrolledCourses?
                 .Count(e => e.Status == EnrollmentStatus.Active) ?? 0;
             Console.WriteLine($"🔍 Student {student.Username}: Total enrollments = {student.EnrolledCourses?.Count ?? 0}, Active = {activeEnrollments}");
-            
+
             foreach (var enrollment in student.EnrolledCourses ?? Enumerable.Empty<UserCourse>())
             {
                 Console.WriteLine($"  📚 Course: {enrollment.Course?.Name}, Status: {enrollment.Status}");
@@ -93,28 +93,28 @@ public class UserService : IUserService
     public async Task<IEnumerable<User>> GetAllLecturerAsync()
     {
         return await _context.Users
-            .Where(s=> s.Role == UserRole.Lecturer)
+            .Where(s => s.Role == UserRole.Lecturer)
             .ToListAsync();
     }
 
     public async Task<IEnumerable<User>> GetAllStudentsAsync()
     {
-        return await _context.Users 
-            .Where(s=> s.Role == UserRole.Student)
+        return await _context.Users
+            .Where(s => s.Role == UserRole.Student)
             .ToListAsync();
     }
 
     public async Task<IEnumerable<User>> GetAllAdminsAsync()
     {
         return await _context.Users
-            .Where(s=> s.Role == UserRole.Admin)
+            .Where(s => s.Role == UserRole.Admin)
             .ToListAsync();
     }
 
     public async Task<IEnumerable<User>> GetStudentsByCoursesAsync(int CourseId)
     {
         return await _context.Users
-            .Where(c=> c.EnrolledCourses.Any(s=> s.Status == EnrollmentStatus.Active && s.CourseId == CourseId))
+            .Where(c => c.EnrolledCourses.Any(s => s.Status == EnrollmentStatus.Active && s.CourseId == CourseId))
             .ToListAsync();
     }
 
@@ -122,7 +122,7 @@ public class UserService : IUserService
     {
         var currentUserId = int.Parse(user.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
         var currentUser = GetUserByIdAsync(currentUserId);
-        
+
         return currentUser;
     }
 
@@ -140,8 +140,13 @@ public class UserService : IUserService
         var totalUserCount = await _context.Users
             .Where(u => u.Role == UserRole.Lecturer)
             .CountAsync();
-            
+
         return totalUserCount;
     }
 
+    public async Task<AcademicSetting> GetCurrentSettingsAsync()
+    {
+        var settings = await _context.AcademicSettings.FirstOrDefaultAsync();
+        return settings;
+    }
 }

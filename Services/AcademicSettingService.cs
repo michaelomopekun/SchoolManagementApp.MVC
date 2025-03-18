@@ -1,3 +1,4 @@
+using Hangfire;
 using Microsoft.EntityFrameworkCore;
 using SchoolManagementApp.MVC.Models;
 
@@ -13,13 +14,17 @@ namespace SchoolManagementApp.MVC.Services
     public class AcademicSettingService : IAcademicSettingService
     {
         private readonly SchoolManagementAppDbContext _context;
-        private readonly IGradeService _gradeService;
+        private readonly StudentPromotionService _studentPromotionService;
+        private readonly IBackgroundJobClient _backgroundJobClient;
 
-        public AcademicSettingService(SchoolManagementAppDbContext context, IGradeService gradeService)
+        public AcademicSettingService(SchoolManagementAppDbContext context, StudentPromotionService studentPromotionService, IBackgroundJobClient backgroundJobClient)
         {
             _context = context;
-            _gradeService = gradeService;
+            _studentPromotionService = studentPromotionService;
+            _backgroundJobClient = backgroundJobClient;
+
         }
+
 
         public async Task<AcademicSetting> GetCurrentSettingsAsync()
         {
@@ -58,6 +63,11 @@ namespace SchoolManagementApp.MVC.Services
                         existing.LastUpdated = DateTime.Now;
 
                         await _context.SaveChangesAsync();
+                        // _studentPromotionService.TriggerPromotionCheck();
+                        _backgroundJobClient.Enqueue<StudentPromotionService>(
+                            service => service.TriggerPromotionCheck());
+
+                        // ("Promotion check triggered due to session change");
                     }
                     else
                     {
@@ -77,49 +87,14 @@ namespace SchoolManagementApp.MVC.Services
                 }
 
 
-                if (existing != null && formattedSession > formattedCurrentSession)
-                {
-                    if (existing.CurrentSemester == Semester.FirstSemester)
-                    {
+                // if (existing != null && formattedSession > formattedCurrentSession)
+                // {
+                //     if (existing.CurrentSemester == Semester.FirstSemester)
+                //     {
 
-                        var students = await _context.Users
-                            .Where(u => u.Role == UserRole.Student)
-                            .Include(u => u.Grades)  // Include grades to check if student has any
-                            .ToListAsync();
+                //     }
 
-                        foreach (var student in students)
-                        {
-                            try
-                            {
-                                // Only calculate GPA if student has grades
-                                if (student.Grades != null && student.Grades.Any())
-                                {
-                                    var gpa = await _gradeService.GenerateGradePointAverage(student.Id);
-                                    Console.WriteLine($"📚📚📚 Student {student.Id} GPA: {gpa:F2}");
-
-                                    if (gpa >= 3)
-                                    {
-                                        student.Level += 100;
-                                        Console.WriteLine($"🎓 Student {student.Id} promoted to level {student.Level}");
-                                    }
-                                }
-                                else
-                                {
-                                    Console.WriteLine($"Student {student.Id} has no grades yet");
-                                }
-
-                                await _context.SaveChangesAsync();
-                            }
-                            catch (Exception ex)
-                            {
-                                // Log the error but continue processing other students
-                                Console.WriteLine($"❌ Error processing student {student.Id}: {ex.Message}");
-                                continue;
-                            }
-                        }
-                    }
-
-                }
+                // }
 
             }
             else

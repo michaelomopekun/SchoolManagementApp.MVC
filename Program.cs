@@ -1,4 +1,6 @@
 using System.Text;
+using Hangfire;
+using Hangfire.SqlServer;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -27,7 +29,7 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
     .Enrich.FromLogContext()
     .WriteTo.Console()
-    .WriteTo.File("Logs/app-.txt", 
+    .WriteTo.File("Logs/app-.txt",
         rollingInterval: RollingInterval.Day,
         fileSizeLimitBytes: 1024 * 1024,
         retainedFileCountLimit: 30,
@@ -42,7 +44,7 @@ builder.Services.AddDbContext<SchoolManagementAppDbContext>(options =>
         b => b.MigrationsAssembly("SchoolManagementApp.MVC")));
 
 // Add Identity with SignInManager and UserManager
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options => 
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
     options.Password.RequireDigit = false;
     options.Password.RequiredLength = 6;
@@ -77,7 +79,8 @@ builder.Services.AddAuthentication(options =>
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-.AddJwtBearer(options => {
+.AddJwtBearer(options =>
+{
     options.Events = new JwtBearerEvents
     {
         OnMessageReceived = context =>
@@ -112,6 +115,15 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+// Add Hangfire services
+builder.Services.AddHangfire(configuration => configuration
+    .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+    .UseSimpleAssemblyNameTypeSerializer()
+    .UseRecommendedSerializerSettings()
+    .UseSqlServerStorage(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddHangfireServer();
+
 // Configure Services
 builder.Services.AddControllersWithViews();
 builder.Services.AddSession(options =>
@@ -122,7 +134,7 @@ builder.Services.AddSession(options =>
 });
 
 // Configure Authorization
-builder.Services.AddAuthorization(options => 
+builder.Services.AddAuthorization(options =>
 {
     //Role-based policies
     options.AddPolicy(PolicyNames.RequireAdmin, policy =>
@@ -142,12 +154,12 @@ builder.Services.AddAuthorization(options =>
         policy.Requirements.Add(new PermissionRequirement(PolicyNames.ManageCourses)));
     options.AddPolicy(PolicyNames.ManageCourses, policy =>
         policy.Requirements.Add(new PermissionRequirement(PolicyNames.ManageCourses)));
-    
+
 });
 
 // Register Services
 builder.Services.AddSignalR();
-builder.Services.AddScoped< PermissionHandler>();
+builder.Services.AddScoped<PermissionHandler>();
 builder.Services.AddScoped<IAuthService, AuthenticationService>();
 builder.Services.AddScoped<JwtService>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
@@ -161,6 +173,7 @@ builder.Services.AddScoped<ICourseMaterialService, CourseMaterialService>();
 builder.Services.AddScoped<IAcademicSettingService, AcademicSettingService>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<StudentPromotionService>();
 builder.Services.AddLogging(loggingBuilder =>
     {
         loggingBuilder.AddConsole();
@@ -195,6 +208,11 @@ app.MapControllerRoute(
 
 app.MapFallbackToFile("index.html");
 app.MapHub<NotificationHub>("/notificationHub");
+
+app.UseHangfireDashboard("/hangfire", new DashboardOptions
+{
+    Authorization = new[] { new HangfireAuthorizationFilter() }
+});
 // app.Urls.Add("http://localhost:5000");
 // app.Urls.Add("https://localhost:7001");
 
