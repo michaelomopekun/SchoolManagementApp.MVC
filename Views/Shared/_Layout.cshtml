@@ -31,6 +31,8 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="~/css/site.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.0/signalr.min.js"></script>
+    <script src="~/js/notifications.js"></script>
     <script src="~/js/site.js"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
@@ -53,11 +55,51 @@
         }
     }
 </script>
+<script>
+    document.addEventListener("DOMContentLoaded", async () => {
+    const notificationList = document.getElementById("notification-list");
+    const notificationCount = document.getElementById("notification-count");
+
+    try {
+        const response = await fetch("/api/Notification/GetNotifications");
+        const notifications = await response.json();
+
+        if (notifications.length > 0) {
+            notificationList.innerHTML = "";
+            notifications.forEach(notification => {
+                const listItem = document.createElement("li");
+                listItem.innerHTML = `<p class="dropdown-item">${notification.message}</p>`;
+                notificationList.appendChild(listItem);
+            });
+
+            notificationCount.innerText = notifications.filter(n => !n.isRead).length;
+            notificationCount.style.display = "inline";
+        }
+    } catch (error) {
+        console.error("Error fetching notifications:", error);
+    }
+});
+</script>
+<script>
+    document.getElementById("notificationBell").addEventListener("click", async () => {
+    const notificationCount = document.getElementById("notification-count");
+
+    try {
+        await fetch("/api/Notification/MarkAllAsRead", { method: "POST" });
+        notificationCount.innerText = "0";
+        notificationCount.style.display = "none";
+    } catch (error) {
+        console.error("Error marking notifications as read:", error);
+    }
+});
+</script>
     <header>
         @if (!hideNavbar || SignInManager.IsSignedIn(User))
         {
             <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark border-body border-bottom box-shadow mb-3">
                 <div class="container-fluid">
+
+
                     <a class="navbar-brand" asp-controller="Home" asp-action="Index">SchoolManagementApp</a>
                     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse">
                         <span class="navbar-toggler-icon"></span>
@@ -84,6 +126,20 @@
                                 <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
                             </li>
                         </ul>
+
+
+                        <div class="dropdown" id="notification-dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="notificationBell" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="fas fa-bell"></i>
+                            <span id="notification-count" class="badge bg-danger" style="display: none;">0</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="notificationBell">
+                            <li id="notification-list">
+                                <p class="dropdown-item text-muted">No new notifications</p>
+                            </li>
+                        </ul>
+                    </div>
+
                         <ul class="navbar-nav">
                             <li class="nav-item">
                                 <span class="nav-link text-light">Welcome, @User.Identity?.Name!</span>
@@ -98,6 +154,7 @@
                     </div>
                 </div>
             </nav>
+
 
         }
 

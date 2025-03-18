@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 // using SchoolManagementApp.MVC;
 using SchoolManagementApp.MVC.Authorization;
+using SchoolManagementApp.MVC.Hubs;
 using SchoolManagementApp.MVC.Models;
 using SchoolManagementApp.MVC.Repository;
 using SchoolManagementApp.MVC.Services;
@@ -145,6 +146,7 @@ builder.Services.AddAuthorization(options =>
 });
 
 // Register Services
+builder.Services.AddSignalR();
 builder.Services.AddScoped< PermissionHandler>();
 builder.Services.AddScoped<IAuthService, AuthenticationService>();
 builder.Services.AddScoped<JwtService>();
@@ -154,10 +156,11 @@ builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IEnrollmentRepository, EnrollmentRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IGradeService, GradeService>();
-builder.Services.AddScoped<IGradeService, GradeService>();
 builder.Services.AddScoped<IGradeReportService, GradeReportService>();
 builder.Services.AddScoped<ICourseMaterialService, CourseMaterialService>();
 builder.Services.AddScoped<IAcademicSettingService, AcademicSettingService>();
+builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddLogging(loggingBuilder =>
     {
         loggingBuilder.AddConsole();
@@ -191,6 +194,7 @@ app.MapControllerRoute(
     pattern: "{controller=Account}/{action=Login}/{id?}");
 
 app.MapFallbackToFile("index.html");
+app.MapHub<NotificationHub>("/notificationHub");
 // app.Urls.Add("http://localhost:5000");
 // app.Urls.Add("https://localhost:7001");
 

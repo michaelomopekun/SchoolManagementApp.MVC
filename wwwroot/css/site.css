@@ -190,3 +190,27 @@ body {
     margin-top: 7rem;
   }
 }
+
+.notification-item {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.notification-item.unread {
+    background-color: #f8f9fa;
+}
+
+.notification-item.read {
+    background-color: #fff;
+}
+
+#notification-count {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(50%, -50%);
+}
+
+#notificationBell {
+    position: relative;
+}

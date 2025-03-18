@@ -1,5 +1,15 @@
 @model IEnumerable<SchoolManagementApp.MVC.Models.Course>
 
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
 <h2>My Courses</h2>
 
 <table class="table">

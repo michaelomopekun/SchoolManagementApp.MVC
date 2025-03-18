@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using SchoolManagementApp.MVC.Hubs;
 using SchoolManagementApp.MVC.Models;
 using SchoolManagementApp.MVC.Repository;
 using SchoolManagementApp.MVC.Services;
@@ -14,15 +16,27 @@ namespace SchoolManagementApp.MVC.Controllers
         private readonly ICourseService _courseService;
         private readonly IUserService _userService;
         private readonly IGradeReportService _gradeReportService;
-        // private readonly IEnrollmentRepository _enrollmentRepository;
+        private readonly IHubContext<NotificationHub> _notificationHubContext;
+        private readonly INotificationService _notificationService;
+        private readonly ILogger<NotificationHub> _logger;
 
-        public GradeController(IGradeService gradeService, ICourseService courseService, IUserService userService, IGradeReportService gradeReportService)
+
+        public GradeController(
+            IGradeService gradeService,
+            ICourseService courseService,
+            IUserService userService,
+            IGradeReportService gradeReportService,
+            IHubContext<NotificationHub> notificationHubContext,
+            INotificationService notificationService,
+            ILogger<NotificationHub> logger)
         {
             _gradeService = gradeService;
             _courseService = courseService;
             _userService = userService;
             _gradeReportService = gradeReportService;
-            // _enrollmentRepository = enrollmentRepository;
+            _notificationHubContext = notificationHubContext;
+            _notificationService = notificationService;
+            _logger = logger;
         }
 
         [Authorize(Roles = "Student")]
@@ -133,6 +147,7 @@ namespace SchoolManagementApp.MVC.Controllers
             
                     await _gradeService.AddGradeAsync(grade);
                     TempData["Success"] = "Grade added successfully.";
+                    await _notificationService.SendNotificationAsync(grade.UserId.ToString(), $"Your Grade has been added for {grade.CourseName}");
                     return RedirectToAction("ManageGrades", new { courseId = grade.CourseId });
                 
         }
@@ -161,6 +176,8 @@ namespace SchoolManagementApp.MVC.Controllers
             // {
                 await _gradeService.UpdateGradeAsync(grade);
                 TempData["Success"] = "Grade updated successfully";
+                await _notificationService.SendNotificationAsync(grade.UserId.ToString(), $"Your Grade has been changed for {grade.CourseName}");
+
                 return RedirectToAction(nameof(ManageGrades), new { courseId = grade.CourseId });
             // }
             // return View("~/Views/Lecturer/EditGrade.cshtml", grade);
@@ -184,6 +201,7 @@ namespace SchoolManagementApp.MVC.Controllers
         [Authorize(Roles = "Lecturer")]
         public async Task<IActionResult> GradeList(int courseId)
         {
+            try{
             var grade = await _gradeService.GetCourseGradesAsync(courseId);
             if (grade == null)
             {
@@ -203,6 +221,11 @@ namespace SchoolManagementApp.MVC.Controllers
                 }).ToList()
             };
             return View(viewModel);
+            }
+            catch(Exception ex){
+                TempData["Error"] = $"Unable to show gradeList : {ex}";
+                return View();
+            }
         }
 
         [Authorize(Roles = "Student")]
@@ -235,6 +258,6 @@ namespace SchoolManagementApp.MVC.Controllers
             }
             
         }
-        
+
     }
 }

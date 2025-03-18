@@ -152,7 +152,7 @@ namespace SchoolManagementApp.MVC.Controllers
             try
             {
                 var activities = new List<StudentActivity>();
-                
+
                 // Get material downloads
                 var downloads = await _materialService.GetStudentsDownloadHistoryAsync(userId);
                 if (downloads != null)
@@ -215,16 +215,17 @@ namespace SchoolManagementApp.MVC.Controllers
         }
 
 
-            public async Task<IActionResult> AcademicSettings()
-            {
-                var settings = await _academicSettingService.GetCurrentSettingsAsync();
-                return View(settings);
-            }
+        public async Task<IActionResult> AcademicSettings()
+        {
+            var settings = await _academicSettingService.GetCurrentSettingsAsync();
+            return View(settings);
+        }
 
-            [HttpPost]
-            public async Task<IActionResult> UpdateAcademicSettings(AcademicSetting model)
+        [HttpPost]
+        public async Task<IActionResult> UpdateAcademicSettings(AcademicSetting model)
+        {
+            try
             {
-                try{
                 if (ModelState.IsValid)
                 {
                     await _academicSettingService.UpdateSettingsAsync(model);
@@ -232,12 +233,12 @@ namespace SchoolManagementApp.MVC.Controllers
                     return RedirectToAction(nameof(AcademicSettings));
                 }
                 return View("~/Views/Admin/AcademicSettings.cshtml", model);
-                }
-                catch (Exception ex)
-                {
-                    TempData["Error"] = $"An error occurred while updating academic settings.{ex}";
-                    return View("~/Views/Admin/AcademicSettings.cshtml", model);
-                }
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = $"error while updating academic settings.{ex.Message}";
+                return View("~/Views/Admin/AcademicSettings.cshtml", model);
+            }
+        }
     }
-}
 }
