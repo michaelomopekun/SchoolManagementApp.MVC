@@ -66,13 +66,13 @@ namespace SchoolManagementApp.MVC.Controllers
             var grades = await _gradeService.GetUserGradesAsync(userId);
 
             ViewBag.User = user;
-            return View("~/Views/Student/MyGrades.cshtml",grades);
+            return View("~/Views/Student/MyGrades.cshtml", grades);
         }
 
         [Authorize(Roles = "Lecturer")]
         public async Task<IActionResult> ManageGrades(int courseId, [FromQuery] GradeFilterViewModel filter)
         {
-            
+
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
 
             if (userIdClaim == null)
@@ -103,7 +103,7 @@ namespace SchoolManagementApp.MVC.Controllers
 
             filter.CourseId = courseId;
             var grades = await _gradeService.GetFilteredGradesAsync(filter);
-            
+
             // var grades = await _gradeService.GetCourseGradesAsync(courseId);
             // List<Grade> gradesList = new List<Grade>();
             // foreach(var grade in grades)
@@ -117,7 +117,7 @@ namespace SchoolManagementApp.MVC.Controllers
             ViewBag.Grades = grades;
             ViewBag.CourseId = courseId;
 
-            return View("~/Views/Lecturer/ManageGrades.cshtml",students);
+            return View("~/Views/Lecturer/ManageGrades.cshtml", students);
 
         }
 
@@ -144,12 +144,12 @@ namespace SchoolManagementApp.MVC.Controllers
         [Authorize(Roles = "Lecturer")]
         public async Task<IActionResult> AddGrade(Grade grade)
         {
-            
-                    await _gradeService.AddGradeAsync(grade);
-                    TempData["Success"] = "Grade added successfully.";
-                    await _notificationService.SendNotificationAsync(grade.UserId.ToString(), $"Your Grade has been added for {grade.CourseName}");
-                    return RedirectToAction("ManageGrades", new { courseId = grade.CourseId });
-                
+
+            await _gradeService.AddGradeAsync(grade);
+            TempData["Success"] = "Grade added successfully.";
+            await _notificationService.SendNotificationAsync("Grade Update", grade.UserId.ToString(), $"Your Grade has been added for {grade.CourseName}");
+            return RedirectToAction("ManageGrades", new { courseId = grade.CourseId });
+
         }
 
         [Authorize(Roles = "Lecturer")]
@@ -174,11 +174,11 @@ namespace SchoolManagementApp.MVC.Controllers
         {
             // if (ModelState.IsValid)
             // {
-                await _gradeService.UpdateGradeAsync(grade);
-                TempData["Success"] = "Grade updated successfully";
-                await _notificationService.SendNotificationAsync(grade.UserId.ToString(), $"Your Grade has been changed for {grade.CourseName}");
+            await _gradeService.UpdateGradeAsync(grade);
+            TempData["Success"] = "Grade updated successfully";
+            await _notificationService.SendNotificationAsync("Grade Modified", grade.UserId.ToString(), $"Your Grade has been changed for {grade.CourseName}");
 
-                return RedirectToAction(nameof(ManageGrades), new { courseId = grade.CourseId });
+            return RedirectToAction(nameof(ManageGrades), new { courseId = grade.CourseId });
             // }
             // return View("~/Views/Lecturer/EditGrade.cshtml", grade);
         }
@@ -201,28 +201,30 @@ namespace SchoolManagementApp.MVC.Controllers
         [Authorize(Roles = "Lecturer")]
         public async Task<IActionResult> GradeList(int courseId)
         {
-            try{
-            var grade = await _gradeService.GetCourseGradesAsync(courseId);
-            if (grade == null)
+            try
             {
-                TempData["Error"] = "Course not yet graded.";
-                return RedirectToAction("CourseList", "Course");
-            }
-            var viewModel = new GradeListViewModel
-            {
-                CourseId = courseId,
-                Grades = grade.Select(g => new Grade
+                var grade = await _gradeService.GetCourseGradesAsync(courseId);
+                if (grade == null)
                 {
-                    GradeId = g.GradeId,
-                    UserId = g.UserId,
-                    Score = g.Score,
-                    Comments = g.Comments,
-                    GradedDate = g.GradedDate
-                }).ToList()
-            };
-            return View(viewModel);
+                    TempData["Error"] = "Course not yet graded.";
+                    return RedirectToAction("CourseList", "Course");
+                }
+                var viewModel = new GradeListViewModel
+                {
+                    CourseId = courseId,
+                    Grades = grade.Select(g => new Grade
+                    {
+                        GradeId = g.GradeId,
+                        UserId = g.UserId,
+                        Score = g.Score,
+                        Comments = g.Comments,
+                        GradedDate = g.GradedDate
+                    }).ToList()
+                };
+                return View(viewModel);
             }
-            catch(Exception ex){
+            catch (Exception ex)
+            {
                 TempData["Error"] = $"Unable to show gradeList : {ex}";
                 return View();
             }
@@ -236,7 +238,7 @@ namespace SchoolManagementApp.MVC.Controllers
             Console.WriteLine($"⌚⌚⌚⌚⌚⌚ user id is {currentUserId}");
 
 
-            if(currentUserId != studentId)
+            if (currentUserId != studentId)
             {
 
                 TempData["Error"] = "You can only download your own grade report.";
@@ -254,9 +256,9 @@ namespace SchoolManagementApp.MVC.Controllers
                 Console.WriteLine($"🔍🔍🔍🔍Error generating grade report: {ex.Message}");
                 TempData["Error"] = $"Error generating grade report.{ex.Message}";
 
-                return RedirectToAction(nameof(MyGrades), new { UserId = currentUserId});
+                return RedirectToAction(nameof(MyGrades), new { UserId = currentUserId });
             }
-            
+
         }
 
     }

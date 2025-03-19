@@ -14,7 +14,7 @@ namespace SchoolManagementApp.MVC.Services
         private readonly IHubContext<NotificationHub> _notificationHubContext;
 
 
-        public NotificationService(INotificationRepository notificationRepository, IUserService userService,ILogger<NotificationHub> logger,IHubContext<NotificationHub> notificationHubContext)
+        public NotificationService(INotificationRepository notificationRepository, IUserService userService, ILogger<NotificationHub> logger, IHubContext<NotificationHub> notificationHubContext)
         {
             _notificationRepository = notificationRepository;
             _userService = userService;
@@ -67,12 +67,13 @@ namespace SchoolManagementApp.MVC.Services
             throw new NotImplementedException();
         }
 
-        public async Task SendNotificationAsync(string userId, string message)
+        public async Task SendNotificationAsync(string Title, string userId, string message)
         {
-            try 
+            try
             {
                 // Verify user exists
                 var user = await _userService.GetUserByIdAsync(int.Parse(userId));
+
                 if (user == null)
                 {
                     _logger.LogError($"Failed to send notification: User {userId} not found");
@@ -82,14 +83,13 @@ namespace SchoolManagementApp.MVC.Services
                 // Create notification entity
                 var notification = new Notification
                 {
-                    Title = "Grade Update",
+                    Title = Title,
                     Message = message,
-                    RecipientIdId = user.Id, // Use the verified user ID
+                    RecipientIdId = user.Id,
                     GeneratedDate = DateTime.Now,
                     IsRead = false
                 };
 
-                // Save to database
                 await AddNotificationAsync(notification);
 
                 // Send real-time notification
@@ -98,7 +98,77 @@ namespace SchoolManagementApp.MVC.Services
             catch (Exception ex)
             {
                 _logger.LogError($"Error sending notification: {ex.Message}");
-                // Consider whether to rethrow or handle silently
+                throw;
+            }
+        }
+
+        public async Task SendToAllUsers(string Title, string message)
+        {
+            try
+            {
+                var users = await _userService.GetAllUsersAsync();
+
+                foreach (var user in users)
+                {
+                    await SendNotificationAsync(Title, user.Id.ToString(), message);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error sending notification to all users: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task SendToAllStudents(string Title, string message)
+        {
+            try
+            {
+                var students = await _userService.GetAllStudentsAsync();
+
+                foreach (var student in students)
+                {
+                    await SendNotificationAsync(Title, student.Id.ToString(), message);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error sending notification to all students: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task SendToAllLecturers(string Title, string message)
+        {
+            try
+            {
+                var lecturers = await _userService.GetAllLecturerAsync();
+
+                foreach (var lecturer in lecturers)
+                {
+                    await SendNotificationAsync(Title, lecturer.Id.ToString(), message);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error sending notification to all students: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task SendToSpecificUsers(string title, string message, List<UserCourse> users)
+        {
+            try
+            {
+                foreach (var user in users)
+                {
+                    await SendNotificationAsync(title, user.Id.ToString(), message);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error sending notification to specific users: {ex.Message}");
                 throw;
             }
         }

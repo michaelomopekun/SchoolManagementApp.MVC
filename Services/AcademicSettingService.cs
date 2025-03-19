@@ -63,11 +63,10 @@ namespace SchoolManagementApp.MVC.Services
                         existing.LastUpdated = DateTime.Now;
 
                         await _context.SaveChangesAsync();
-                        // _studentPromotionService.TriggerPromotionCheck();
+
                         _backgroundJobClient.Enqueue<StudentPromotionService>(
                             service => service.TriggerPromotionCheck());
 
-                        // ("Promotion check triggered due to session change");
                     }
                     else
                     {

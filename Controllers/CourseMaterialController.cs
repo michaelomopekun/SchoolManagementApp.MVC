@@ -10,12 +10,14 @@ public class CourseMaterialController : Controller
     private readonly ICourseMaterialService _materialService;
     private readonly IUserService _userService;
     private readonly ICourseService _courseService;
+    private readonly INotificationService _notificationService;
 
-    public CourseMaterialController(ICourseMaterialService materialService, IUserService userService, ICourseService courseService)
+    public CourseMaterialController(ICourseMaterialService materialService, IUserService userService, ICourseService courseService, INotificationService notificationService)
     {
         _materialService = materialService;
         _userService = userService;
         _courseService = courseService;
+        _notificationService = notificationService;
     }
 
     [HttpGet]
@@ -66,18 +68,20 @@ public class CourseMaterialController : Controller
         }
 
         // var currentUser = await _userService.GetCurrentUserAsync();
-            var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            var currentUser = await _userService.GetUserByIdAsync(currentUserId);
-        
+        var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+        var currentUser = await _userService.GetUserByIdAsync(currentUserId);
+
         try
         {
-            Console.WriteLine("⌚⌚⌚⌚Uploading material for course: " + courseId);
-            Console.WriteLine("⌚⌚⌚⌚Uploading material for user: " + currentUser.Id);
-            Console.WriteLine("⌚⌚⌚⌚Uploading material with title: " + title);
-            Console.WriteLine("⌚⌚⌚⌚Uploading material with description: " + description);
-            
+            // Console.WriteLine("⌚⌚⌚⌚Uploading material for course: " + courseId);
+            // Console.WriteLine("⌚⌚⌚⌚Uploading material for user: " + currentUser.Id);
+            // Console.WriteLine("⌚⌚⌚⌚Uploading material with title: " + title);
+            // Console.WriteLine("⌚⌚⌚⌚Uploading material with description: " + description);
+
             await _materialService.UploadMaterialAsync(file, courseId, title, description, currentUser.Id);
             TempData["Success"] = "Course material uploaded successfully.";
+            var enrolledStudents = await _courseService.GetStudentEnrolledInCourseAsync(courseId);
+            await _notificationService.SendToSpecificUsers("New Course Material", $"New course material uploaded for course {courseId}", enrolledStudents);
         }
         catch (Exception ex)
         {
@@ -93,15 +97,22 @@ public class CourseMaterialController : Controller
         CourseMaterial? material = null;
         try
         {
+            var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
+            var currentUser = await _userService.GetUserByIdAsync(currentUserId);
+
             material = await _materialService.GetMaterialAsync(id);
             if (material == null)
             {
                 return NotFound();
             }
 
-            var currentUserId = int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "0");
-            var currentUser = await _userService.GetUserByIdAsync(currentUserId);
-            
+            var course = await _courseService.GetCourseAsync(material.CourseId);
+            if (course != null && User.IsInRole("Student"))
+            {
+                await _notificationService.SendNotificationAsync($" Downloaded Course Material", course.LecturerId.ToString(), $"Course material {material.Title} downloaded by {currentUser.Username}.");
+            }
+
+
             await _materialService.RecordDownloadAsync(id, currentUser.Id);
 
             return File(material.FileContent, material.ContentType, material.Title);
@@ -149,6 +160,7 @@ public class CourseMaterialController : Controller
         try
         {
             await _materialService.DeleteMaterialAsync(id);
+            await _notificationService.SendToAllStudents("Course Material removed", $"Course material with id {id} has been removed.");
             TempData["Success"] = "Course material deleted successfully.";
         }
         catch (Exception ex)

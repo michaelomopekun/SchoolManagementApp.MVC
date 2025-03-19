@@ -12,6 +12,10 @@ namespace SchoolManagementApp.MVC.Services
         Task MarkNotificationAsReadAsync(int notificationId);
         Task MarkAllNotificationsAsReadAsync(int userId);
         Task<int> GetUnreadNotificationsCountAsync(int userId);
-        Task SendNotificationAsync(string userId, string message);
+        Task SendNotificationAsync(string title, string userId, string message);
+        Task SendToAllStudents(string title, string message);
+        Task SendToAllLecturers(string title, string message);
+        Task SendToAllUsers(string title, string message);
+        Task SendToSpecificUsers(string title, string message, List<UserCourse> users);
     }
 }

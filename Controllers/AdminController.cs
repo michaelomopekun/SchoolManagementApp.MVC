@@ -15,15 +15,17 @@ namespace SchoolManagementApp.MVC.Controllers
         private readonly ICourseMaterialService _materialService;
         private readonly IGradeService _gradeService;
         private readonly IAcademicSettingService _academicSettingService;
+        private readonly INotificationService _notificationService;
 
 
-        public AdminController(IUserService userService, ICourseService courseService, ICourseMaterialService materialService, IGradeService gradeService, IAcademicSettingService academicSettingService)
+        public AdminController(IUserService userService, ICourseService courseService, ICourseMaterialService materialService, IGradeService gradeService, IAcademicSettingService academicSettingService, INotificationService notificationService)
         {
             _userService = userService;
             _courseService = courseService;
             _materialService = materialService;
             _gradeService = gradeService;
             _academicSettingService = academicSettingService;
+            _notificationService = notificationService;
         }
 
         [HttpGet]
@@ -101,6 +103,8 @@ namespace SchoolManagementApp.MVC.Controllers
 
                 await _userService.UpdateUserAsync(user);
                 TempData["Success"] = "User updated successfully";
+                await _notificationService.SendNotificationAsync("User modefication", user.Id.ToString(), $"Your account has been updated to{model.Username} with role {model.Role} by an admin.");
+
                 return RedirectToAction(nameof(ManageUsers));
             }
 
@@ -143,6 +147,7 @@ namespace SchoolManagementApp.MVC.Controllers
         {
             await _courseService.AssigeCourseToLecturerAsync(LecturerId, CourseId);
             TempData["Success"] = "Course assigned successfully";
+            await _notificationService.SendNotificationAsync("Assigned Course", LecturerId.ToString(), $"You have been assigned to a new course by an admin.");
             return RedirectToAction(nameof(ManageLecturers));
         }
 
