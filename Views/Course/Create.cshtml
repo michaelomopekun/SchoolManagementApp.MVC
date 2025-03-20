@@ -42,63 +42,85 @@
 
 @if (User.IsInRole("Admin"))
 {
-@model Course
+    @model Course
 
-<h2>@ViewData["Title"]</h2>
+    <h2>@ViewData["Title"]</h2>
 
-<form asp-action="Create" method="post" class="form-horizontal">
-    <div class="form-group">
-        <label asp-for="Name" class="control-label col-md-2">Course Name</label>
-        <div class="col-md-10">
-            <input asp-for="Name" class="form-control" />
-            <span asp-validation-for="Name" class="text-danger"></span>
+    <form asp-action="Create" method="post" class="form-horizontal">
+        <div class="form-group">
+            <label asp-for="Name" class="control-label col-md-2">Course Name</label>
+            <div class="col-md-10">
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
         </div>
-    </div>
-    
-    <div class="form-group">
-        <label asp-for="Description" class="control-label col-md-2">Description</label>
-        <div class="col-md-10">
-            <textarea asp-for="Description" class="form-control"></textarea>
-            <span asp-validation-for="Description" class="text-danger"></span>
-        </div>
-    </div>
 
-    <div class="form-group">
-        <label asp-for="Code" class="control-label col-md-2">Code</label>
-        <div class="col-md-10">
-            <input asp-for="Code" class="form-control" />
-            <span asp-validation-for="Code" class="text-danger"></span>
+        <div class="form-group">
+            <label asp-for="Description" class="control-label col-md-2">Description</label>
+            <div class="col-md-10">
+                <textarea asp-for="Description" class="form-control"></textarea>
+                <span asp-validation-for="Description" class="text-danger"></span>
+            </div>
         </div>
-    </div>
 
-    <div class="form-group">
-        <label asp-for="Credit" class="control-label col-md-2">Course Credit</label>
-        <div class="col-md-10">
-            <input asp-for="Credit" class="form-control" />
-            <span asp-validation-for="Credit" class="text-danger"></span>
+        <div class="form-group">
+            <label asp-for="Code" class="control-label col-md-2">Code</label>
+            <div class="col-md-10">
+                <input asp-for="Code" class="form-control" />
+                <span asp-validation-for="Code" class="text-danger"></span>
+            </div>
         </div>
-    </div>
 
-    <div class="form-group">
+        <div class="form-group">
+            <label asp-for="Credit" class="control-label col-md-2">Course Credit</label>
+            <div class="col-md-10">
+                <input asp-for="Credit" class="form-control" />
+                <span asp-validation-for="Credit" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Credit" class="control-label col-md-2">Level</label>
+            <div class="col-md-10">
+                <select asp-for="Level" class="form-control" asp-items="ViewBag.Level">
+                    <option value=""> Select Level </option>
+                </select>
+                <span asp-validation-for="Level" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Credit" class="control-label col-md-2">Semester</label>
+            <div class="col-md-10">
+                <select asp-for="Semester" class="form-control" asp-items="ViewBag.Semester">
+                    <option value=""> Select Semester </option>
+                </select>
+                <span asp-validation-for="Semester" class="text-danger"></span>
+            </div>
+        </div>
+
+        <div class="form-group">
             <label asp-for="LecturerId" class="control-label col-md-2">Lecturer</label>
             <div class="col-md-10">
                 <select asp-for="LecturerId" class="form-control" asp-items="ViewBag.Lecturer">
-                    <option value="">-- Select Lecturer --</option>
+                    <option value=""> Select Lecturer </option>
                 </select>
                 <span asp-validation-for="LecturerId" class="text-danger"></span>
             </div>
-    </div>
-
-    <div class="form-group">
-        <div class="col-md-offset-2 col-md-10">
-            <button type="submit" class="btn btn-primary">Create</button>
-            <a asp-action="CourseList" asp-controller="Course" class="btn btn-secondary">Back to List</a>
-
         </div>
-    </div>
-</form>
 
-@section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-}
+        <div class="form-group">
+            <div class="col-md-offset-2 col-md-10">
+                <button type="submit" class="btn btn-primary">Create</button>
+                <a asp-action="CourseList" asp-controller="Course" class="btn btn-secondary">Back to List</a>
+
+            </div>
+        </div>
+    </form>
+
+    @section Scripts {
+        @{
+            await Html.RenderPartialAsync("_ValidationScriptsPartial");
+        }
+    }
 }

@@ -10,4 +10,7 @@ public class EditUserViewModel
 
     [Required]
     public UserRole Role { get; set; }
+
+    [Required]
+    public Level Level { get; set; }
 }

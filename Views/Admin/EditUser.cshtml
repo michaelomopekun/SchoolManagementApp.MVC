@@ -22,7 +22,7 @@
 
     <form asp-controller="Admin" asp-action="EditUser" method="post">
         <input type="hidden" asp-for="Id" />
-        
+
         <div class="mb-3">
             <label asp-for="Username" class="form-label">Username</label>
             <input asp-for="Username" class="form-control" required />
@@ -40,6 +40,22 @@
             <span asp-validation-for="Role" class="text-danger"></span>
         </div>
 
+        @if (Model.Role == UserRole.Student)
+        {
+            <div class="mb-3">
+                <label asp-for="Level" class="form-label">Level</label>
+                <select asp-for="Level" class="form-select" required>
+                    <option value="">Select Level</option>
+                    @foreach (Level level in Enum.GetValues(typeof(Level)))
+                    {
+                        <option value="@level">@level</option>
+                    }
+                </select>
+                <span asp-validation-for="Level" class="text-danger"></span>
+            </div>
+        }
+
+
         <div class="mt-3">
             <button type="submit" class="btn btn-primary">Save Changes</button>
             <a asp-controller="Admin" asp-action="ManageUsers" class="btn btn-secondary">Back to List</a>
@@ -48,5 +64,7 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
 }

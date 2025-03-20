@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.Identity.Client;
 using SchoolManagementApp.MVC.Models;
 using SchoolManagementApp.MVC.Repository;
+using SchoolManagementApp.MVC.Services;
 
 
 namespace SchoolManagementApp.MVC.Controllers
@@ -18,15 +19,18 @@ namespace SchoolManagementApp.MVC.Controllers
         private readonly IStudentRepository _studentRepository;
         private readonly IEnrollmentRepository _enrollmentRepository;
         private readonly IUserService _userService;
+        private readonly INotificationService _notificationService;
 
-        public CourseController(ICourseService courseService, ICourseRepository courseRepository, IStudentRepository studentRepository, IEnrollmentRepository enrollmentRepository, IUserService userService)
+        public CourseController(ICourseService courseService, ICourseRepository courseRepository, IStudentRepository studentRepository, IEnrollmentRepository enrollmentRepository, IUserService userService, INotificationService notificationService)
         {
             _courseService = courseService;
             _courseRepository = courseRepository;
             _studentRepository = studentRepository;
             _enrollmentRepository = enrollmentRepository;
             _userService = userService;
+            _notificationService = notificationService;
         }
+
 
         [HttpGet("CourseList")]
         [Authorize(Roles = "Admin,Student")]
@@ -43,13 +47,21 @@ namespace SchoolManagementApp.MVC.Controllers
             return View(courses);
         }
 
+
         [Authorize(Roles = "Admin,Lecturer")]
         public async Task<IActionResult> Create()
         {
             var Lecturer = await _userService.GetAllLecturerAsync();
+            var semester = Enum.GetValues(typeof(Semester)).Cast<Semester>();
+            var level = Enum.GetValues(typeof(Level)).Cast<Level>();
+
             ViewBag.Lecturer = new SelectList(Lecturer, "Id", "Username");
+            ViewBag.Semester = new SelectList(semester);
+            ViewBag.Level = new SelectList(level);
             return View();
         }
+
+
         [HttpPost]
         public async Task<IActionResult> Create(Course course)
         {
@@ -65,8 +77,32 @@ namespace SchoolManagementApp.MVC.Controllers
             // }
 
             await _courseService.AddCourseAsync(course);
+            await _notificationService.SendNotificationAsync($"Assigned Course {course.Code}", course.LecturerId.ToString(), $"You have been assigned to a new course by an admin.");
+            TempData["Success"] = "Course added successfully";
             return RedirectToAction(nameof(CourseList));
         }
+
+
+        [HttpGet("edit/{Id}")]
+        [Authorize(Roles = "Admin,Lecturer")]
+        public async Task<IActionResult> Edit(int Id)
+        {
+            var Lecturer = await _userService.GetAllLecturerAsync();
+            var semester = Enum.GetValues(typeof(Semester)).Cast<Semester>();
+            var level = Enum.GetValues(typeof(Level)).Cast<Level>();
+
+            ViewBag.Lecturer = new SelectList(Lecturer, "Id", "Username");
+            ViewBag.Semester = new SelectList(semester);
+            ViewBag.Level = new SelectList(level);
+
+            var course = await _courseRepository.GetCourseByIdAsync(Id);
+            if (course == null)
+            {
+                return NotFound();
+            }
+            return View(course);
+        }
+
 
         [HttpPost("edit/{Id}")]
         [Authorize(Roles = "Admin,Lecturer")]
@@ -76,23 +112,19 @@ namespace SchoolManagementApp.MVC.Controllers
             {
                 return NotFound();
             }
+
+            // var courseToEdit = await _courseService.GetCourseAsync(course.Id);
+            // if (courseToEdit != null)
+            // {
+            //     courseToEdit.Code = course.Code;
+            // }
+
+
             await _courseService.UpdateCourseAsync(course);
             return RedirectToAction(nameof(CourseList));
         }
-        [HttpGet("edit/{Id}")]
-        [Authorize(Roles = "Admin,Lecturer")]
-        public async Task<IActionResult> Edit(int Id)
-        {
-            var Lecturer = await _userService.GetAllLecturerAsync();
-            ViewBag.Lecturer = new SelectList(Lecturer, "Id", "Username");
 
-            var course = await _courseRepository.GetCourseByIdAsync(Id);
-            if (course == null)
-            {
-                return NotFound();
-            }
-            return View(course);
-        }
+
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Delete(int Id)
@@ -104,6 +136,8 @@ namespace SchoolManagementApp.MVC.Controllers
             }
             return View(course);
         }
+
+
         [HttpPost, ActionName("Delete")]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int Id)
@@ -126,6 +160,7 @@ namespace SchoolManagementApp.MVC.Controllers
             // }
 
         }
+
 
         public async Task<IActionResult> EnrollCourse(int courseId)
         {
@@ -165,6 +200,7 @@ namespace SchoolManagementApp.MVC.Controllers
             }
         }
 
+
         public async Task<IActionResult> MyEnrollments()
         {
             var user = await _studentRepository.GetUserByUsernameAsync(User.Identity.Name);
@@ -172,6 +208,7 @@ namespace SchoolManagementApp.MVC.Controllers
 
             return View(enrollments);
         }
+
 
         [Authorize(Roles = "Student")]
         public async Task<IActionResult> WithdrawCourse(int courseId)

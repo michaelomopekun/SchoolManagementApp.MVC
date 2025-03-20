@@ -19,10 +19,12 @@ namespace SchoolManagementApp.MVC.Models
         public string? Credit { get; set; }
         public string? Description { get; set; } = string.Empty;
         public int LecturerId { get; set; }
+        public Semester Semester { get; set; }
+        public Level Level { get; set; }
 
 
 
-    public virtual ICollection<CourseMaterial> CourseMaterials { get; set; }
+        public virtual ICollection<CourseMaterial> CourseMaterials { get; set; }
 
         public virtual User? Lecturer { get; set; }
         public virtual ICollection<UserCourse>? EnrolledUsers { get; set; } = new List<UserCourse>();

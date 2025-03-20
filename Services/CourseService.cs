@@ -22,11 +22,11 @@ public class CourseService : ICourseService
     }
     public async Task AddCourseAsync(Course course)
     {
-        if(course.Name==null)
+        if (course.Name == null)
         {
             Console.WriteLine($"❌❌ AddCourseAsync Course name is null");
             throw new ArgumentException("Course Name can not be null");
-        
+
         }
 
         Console.WriteLine($"✅✅ AddCourseAsync Got course name {course.Name}");
@@ -35,8 +35,8 @@ public class CourseService : ICourseService
 
     public async Task AssigeCourseToLecturerAsync(int lecturerId, List<int> couresIds)
     {
-       var lecturer = await _context.Users.FindAsync(lecturerId);
-        if(lecturer == null || UserRole.Lecturer != lecturer.Role)
+        var lecturer = await _context.Users.FindAsync(lecturerId);
+        if (lecturer == null || UserRole.Lecturer != lecturer.Role)
         {
             throw new Exception("Lecturer not found");
         }
@@ -58,11 +58,11 @@ public class CourseService : ICourseService
             throw new ArgumentException("Course not found");
         }
 
-        if(course.Grades != null && course.Grades.Any())
+        if (course.Grades != null && course.Grades.Any())
         {
             throw new ArgumentException("Course has grades, cannot delete courses with existing grades");
         }
-        
+
         await _courseRepository.DeleteAsync(Id);
     }
 
@@ -94,7 +94,7 @@ public class CourseService : ICourseService
         var lecturerCourses = await _context.Course
         .Include(c => c.CourseMaterials)
         .Where(uc => uc.LecturerId == lecturerId)
-        .ToListAsync();    
+        .ToListAsync();
 
         return lecturerCourses;
     }
@@ -118,7 +118,8 @@ public class CourseService : ICourseService
                 .Select(uc => uc.UserId)
                 .Distinct()
                 .CountAsync();
-        }catch (Exception ex)
+        }
+        catch (Exception ex)
         {
             throw new ArgumentException($"Error {ex} getting total students for lecturer {lecturerId}");
             // throw;
@@ -128,14 +129,14 @@ public class CourseService : ICourseService
     public async Task<List<UserCourse>> GetUserEnrolledCourseAsync()
     {
         var students = await _userService.GetStudentsWithEnrollmentsAsync();
-            var userEnrollments = new List<UserCourse>();
+        var userEnrollments = new List<UserCourse>();
 
-            foreach (var student in students)
-            {
-                var enrolledCourses = await _enrollmentRepository.GetUserEnrollmentsAsync(student.Id);
-                userEnrollments.AddRange(enrolledCourses);
-            }
-            return userEnrollments;
+        foreach (var student in students)
+        {
+            var enrolledCourses = await _enrollmentRepository.GetUserEnrollmentsAsync(student.Id);
+            userEnrollments.AddRange(enrolledCourses);
+        }
+        return userEnrollments;
     }
 
     public async Task UpdateCourseAsync(Course course)
@@ -145,20 +146,20 @@ public class CourseService : ICourseService
 
     public async Task<List<Course>> GetStudentEnrolledInCoursewithMaterialAsync(int studentId)
     {
-    var enrolledCourses = await _context.UserCourses
-        .Include(uc => uc.Course)
-        .ThenInclude(c => c.CourseMaterials)
-        .Where(uc => uc.UserId == studentId && uc.Status == EnrollmentStatus.Active)
-        .Select(uc => uc.Course)
-        .ToListAsync();
+        var enrolledCourses = await _context.UserCourses
+            .Include(uc => uc.Course)
+            .ThenInclude(c => c.CourseMaterials)
+            .Where(uc => uc.UserId == studentId && uc.Status == EnrollmentStatus.Active)
+            .Select(uc => uc.Course)
+            .ToListAsync();
 
-    return enrolledCourses;
+        return enrolledCourses;
     }
 
     public Task<int> GetTotalCoursesCountAsync()
     {
         var totalCourses = _context.Course.CountAsync();
-        
+
         return totalCourses;
     }
 }

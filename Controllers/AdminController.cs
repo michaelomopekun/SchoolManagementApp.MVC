@@ -77,11 +77,17 @@ namespace SchoolManagementApp.MVC.Controllers
                 return NotFound();
             }
 
+            ViewBag.Roles = user.Role;
+            var level = Enum.GetValues(typeof(Level)).Cast<Level>().ToList();
+            ViewBag.Levels = level;
+
+
             var viewModel = new EditUserViewModel
             {
                 Id = user.Id,
                 Username = user.Username,
-                Role = user.Role
+                Role = user.Role,
+                Level = user.Level
             };
 
             return View(viewModel);
@@ -100,6 +106,15 @@ namespace SchoolManagementApp.MVC.Controllers
 
                 user.Username = model.Username;
                 user.Role = model.Role;
+
+                if (model.Role == UserRole.Student)
+                {
+                    user.Level = model.Level;
+                }
+                else
+                {
+                    user.Level = Level.LevelNoneStudent;
+                }
 
                 await _userService.UpdateUserAsync(user);
                 TempData["Success"] = "User updated successfully";
