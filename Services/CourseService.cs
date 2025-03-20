@@ -162,4 +162,13 @@ public class CourseService : ICourseService
 
         return totalCourses;
     }
+
+    public async Task<List<Course>> GetCoursesBySemesterAsync(Level Level, Semester CurrentSemester)
+    {
+        var courses = await _context.Course
+            .Where(c => c.Level == Level && c.Semester == CurrentSemester)
+            .ToListAsync();
+
+        return courses;
+    }
 }

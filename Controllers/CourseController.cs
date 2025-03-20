@@ -1,5 +1,6 @@
 
 using System.Linq.Expressions;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
@@ -20,8 +21,9 @@ namespace SchoolManagementApp.MVC.Controllers
         private readonly IEnrollmentRepository _enrollmentRepository;
         private readonly IUserService _userService;
         private readonly INotificationService _notificationService;
+        private readonly IAcademicSettingService _academicSettingService;
 
-        public CourseController(ICourseService courseService, ICourseRepository courseRepository, IStudentRepository studentRepository, IEnrollmentRepository enrollmentRepository, IUserService userService, INotificationService notificationService)
+        public CourseController(ICourseService courseService, ICourseRepository courseRepository, IStudentRepository studentRepository, IEnrollmentRepository enrollmentRepository, IUserService userService, INotificationService notificationService, IAcademicSettingService academicSettingService)
         {
             _courseService = courseService;
             _courseRepository = courseRepository;
@@ -29,22 +31,32 @@ namespace SchoolManagementApp.MVC.Controllers
             _enrollmentRepository = enrollmentRepository;
             _userService = userService;
             _notificationService = notificationService;
+            _academicSettingService = academicSettingService;
         }
 
 
         [HttpGet("CourseList")]
-        [Authorize(Roles = "Admin,Student")]
+        [Authorize(Roles = "Student")]
         public async Task<IActionResult> CourseList()
         {
-            var courses = await _courseService.GetAllCoursesAsync();
-            foreach (var course in courses)
+            var userClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            var userId = int.Parse(userClaim?.Value ?? "0");
+            var user = await _userService.GetUserByIdAsync(userId);
+            var currentSemester = await _academicSettingService.GetCurrentSettingsAsync();
+
+            var currentSemesterCourse = await _courseService.GetCoursesBySemesterAsync(user.Level, currentSemester.CurrentSemester);
+
+
+            // var courses = await _courseService.GetAllCoursesAsync();
+            // var CurrentSemester
+            foreach (var course in currentSemesterCourse)
             {
                 var lecturerId = course.LecturerId;
                 var lecturer = await _userService.GetUserByIdAsync(lecturerId);
                 ViewBag.Lecturer = lecturer;
             }
 
-            return View(courses);
+            return View(currentSemesterCourse);
         }
 
 
