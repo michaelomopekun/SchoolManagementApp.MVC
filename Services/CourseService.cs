@@ -86,14 +86,20 @@ public class CourseService : ICourseService
 
     public async Task<IEnumerable<Course>> GetCoursesByLecturerIdAsync(int lecturerId)
     {
-        return await _context.Course.Where(c => c.LecturerId == lecturerId).ToListAsync();
+        var academicSession = await _context.AcademicSettings.FirstOrDefaultAsync();
+
+        return await _context.Course
+            .Where(c => c.LecturerId == lecturerId && c.Semester == academicSession.CurrentSemester)
+            .ToListAsync();
     }
 
     public async Task<List<Course>> GetLecturerCoursesAsync(int lecturerId)
     {
+        var academicSession = await _context.AcademicSettings.FirstOrDefaultAsync();
+
         var lecturerCourses = await _context.Course
         .Include(c => c.CourseMaterials)
-        .Where(uc => uc.LecturerId == lecturerId)
+        .Where(uc => uc.LecturerId == lecturerId && uc.Semester == academicSession.CurrentSemester)
         .ToListAsync();
 
         return lecturerCourses;
@@ -170,5 +176,41 @@ public class CourseService : ICourseService
             .ToListAsync();
 
         return courses;
+    }
+
+    public async Task WithdrawAllCourseAsync()
+    {
+        using var transaction = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            _logger.LogInformation("Starting bulk course withdrawal process");
+
+            var activeEnrollments = await _context.UserCourses
+                .Where(s => s.Status == EnrollmentStatus.Active)
+                .ToListAsync();
+
+            if (!activeEnrollments.Any())
+            {
+                _logger.LogInformation("No active enrollments found to withdraw");
+                return;
+            }
+
+            foreach (var enrollment in activeEnrollments)
+            {
+                enrollment.Status = EnrollmentStatus.Completed;
+                enrollment.EnrollmentDate = DateTime.UtcNow;
+            }
+
+            var count = await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+
+            _logger.LogInformation("Successfully completed {Count} course withdrawals", count);
+        }
+        catch (Exception ex)
+        {
+            await transaction.RollbackAsync();
+            _logger.LogError(ex, "Error during bulk course withdrawal");
+            throw new InvalidOperationException("Failed to withdraw courses. Please try again.", ex);
+        }
     }
 }

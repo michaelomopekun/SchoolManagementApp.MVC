@@ -15,37 +15,40 @@ public class CourseMaterialService : ICourseMaterialService
     public async Task<CourseMaterial> UploadMaterialAsync(IFormFile file, int courseId, string title, string description, int uploaderId)
     {
 
-    try
-    {
-        using var memoryStream = new MemoryStream();
-        await file.CopyToAsync(memoryStream);
-
-        var material = new CourseMaterial
+        try
         {
-            FileName = file.FileName,
-            CourseId = courseId,
-            Title = title,
-            Description = description,
-            FileContent = memoryStream.ToArray(),
-            ContentType = file.ContentType,
-            FileSize = file.Length.ToString(),
-            UploadDate = DateTime.Now,
-            UploaderId = uploaderId
-        };
+            using var memoryStream = new MemoryStream();
+            await file.CopyToAsync(memoryStream);
 
-        _context.CourseMaterials.Add(material);
-        await _context.SaveChangesAsync();
-        return material;
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error uploading material: {ex.Message}");
-        if (ex.InnerException != null)
-        {
-            Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+            var academicSession = await _context.AcademicSettings.FirstOrDefaultAsync();
+
+            var material = new CourseMaterial
+            {
+                FileName = file.FileName,
+                CourseId = courseId,
+                Title = title,
+                Description = description,
+                FileContent = memoryStream.ToArray(),
+                ContentType = file.ContentType,
+                FileSize = file.Length.ToString(),
+                UploadDate = DateTime.Now,
+                UploaderId = uploaderId,
+                Semester = academicSession.CurrentSemester
+            };
+
+            _context.CourseMaterials.Add(material);
+            await _context.SaveChangesAsync();
+            return material;
         }
-        throw;
-    }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error uploading material: {ex.Message}");
+            if (ex.InnerException != null)
+            {
+                Console.WriteLine($"Inner Exception: {ex.InnerException.Message}");
+            }
+            throw;
+        }
     }
 
     public async Task<IEnumerable<CourseMaterial>> GetCourseMaterialsAsync(int courseId)
@@ -81,22 +84,22 @@ public class CourseMaterialService : ICourseMaterialService
 
     public async Task<IEnumerable<CourseMaterial>> GetMaterialsByStudentAsync(int studentId)
     {
-        
-    var studentCourses = await _context.UserCourses
-        .Where(e => e.UserId == studentId)
-        .Select(e => e.CourseId)
-        .ToListAsync();
 
-    // Get all materials for those courses
-    var materials = await _context.CourseMaterials
-        .Include(m => m.Course)
-        .Include(m => m.Uploader)
-        .Include(m => m.Downloads)
-        .Where(m => studentCourses.Contains(m.CourseId))
-        .OrderByDescending(m => m.UploadDate)
-        .ToListAsync();
-     
-    return materials;
+        var studentCourses = await _context.UserCourses
+            .Where(e => e.UserId == studentId)
+            .Select(e => e.CourseId)
+            .ToListAsync();
+
+        // Get all materials for those courses
+        var materials = await _context.CourseMaterials
+            .Include(m => m.Course)
+            .Include(m => m.Uploader)
+            .Include(m => m.Downloads)
+            .Where(m => studentCourses.Contains(m.CourseId))
+            .OrderByDescending(m => m.UploadDate)
+            .ToListAsync();
+
+        return materials;
     }
 
     public async Task<IEnumerable<CourseMaterial>> GetMaterialsByUploaderAsync(int uploaderId)
@@ -112,23 +115,23 @@ public class CourseMaterialService : ICourseMaterialService
 
     public async Task RecordDownloadAsync(int materialId, int studentId)
     {
-    // Check if material exists
-    var material = await _context.CourseMaterials
-        .FirstOrDefaultAsync(m => m.Id == materialId);
+        // Check if material exists
+        var material = await _context.CourseMaterials
+            .FirstOrDefaultAsync(m => m.Id == materialId);
 
-    if (material == null)
-    {
-        throw new ArgumentException("Course material not found", nameof(materialId));
-    }
+        if (material == null)
+        {
+            throw new ArgumentException("Course material not found", nameof(materialId));
+        }
 
-    // Check if student exists
-    var student = await _context.Users
-        .FirstOrDefaultAsync(s => s.Id == studentId);
+        // Check if student exists
+        var student = await _context.Users
+            .FirstOrDefaultAsync(s => s.Id == studentId);
 
-    if (student == null)
-    {
-        throw new ArgumentException("Student not found", nameof(studentId));
-    }
+        if (student == null)
+        {
+            throw new ArgumentException("Student not found", nameof(studentId));
+        }
 
         var downLoadRecord = new CourseMaterialDownload
         {
@@ -138,25 +141,28 @@ public class CourseMaterialService : ICourseMaterialService
         };
 
         await _context.CourseMaterialDownloads.AddAsync(downLoadRecord);
-        
+
         await _context.SaveChangesAsync();
     }
 
     public async Task UpdateMaterialAsync(int materialId, string title, string description)
     {
-        var material = _context.CourseMaterials.Find(materialId);
+        // Console.WriteLine($"🔍🔍🔍🔍 Updating material with id: {materialId}");
+        var material = await _context.CourseMaterials.FindAsync(materialId);
 
-        if (material != null)
+        if (material == null)
         {
             throw new ArgumentException("Course material not found", nameof(materialId));
         }
-            material.Title = title;
-            material.Description = description;
-            material.UploadDate = DateTime.Now;
 
-            _context.CourseMaterials.Update(material);
+        material.Title = title;
+        material.Description = description;
+        material.UploadDate = DateTime.Now;
+        // material.Semester = Semester.FirstSemester;
 
-         await _context.SaveChangesAsync();
+        _context.CourseMaterials.Update(material);
+
+        await _context.SaveChangesAsync();
     }
 
     public async Task DeleteMaterialAsync(int materialId)
@@ -179,7 +185,7 @@ public class CourseMaterialService : ICourseMaterialService
         // Remove the material
         _context.CourseMaterials.Remove(material);
         await _context.SaveChangesAsync();
-    
+
     }
 
     public async Task<IEnumerable<CourseMaterialDownload>> GetStudentsDownloadHistoryAsync(int userId)
@@ -188,7 +194,7 @@ public class CourseMaterialService : ICourseMaterialService
             .Include(d => d.CourseMaterial)
             .Where(d => d.StudentId == userId)
             .ToListAsync();
-        
+
         return studentDownloads;
     }
 }

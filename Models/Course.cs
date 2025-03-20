@@ -43,6 +43,8 @@ namespace SchoolManagementApp.MVC.Models
         public string FileSize { get; set; }
         public DateTime UploadDate { get; set; }
         public string Description { get; set; }
+        public Semester Semester { get; set; }
+        // public S
 
 
         // public virtual CourseMaterial CourseMaterial { get; set; }

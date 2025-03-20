@@ -250,6 +250,7 @@ namespace SchoolManagementApp.MVC.Controllers
                 {
                     await _academicSettingService.UpdateSettingsAsync(model);
                     TempData["Success"] = "Academic settings updated successfully.";
+                    await _courseService.WithdrawAllCourseAsync();
                     return RedirectToAction(nameof(AcademicSettings));
                 }
                 return View("~/Views/Admin/AcademicSettings.cshtml", model);

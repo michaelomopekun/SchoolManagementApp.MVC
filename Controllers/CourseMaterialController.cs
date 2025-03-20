@@ -73,11 +73,6 @@ public class CourseMaterialController : Controller
 
         try
         {
-            // Console.WriteLine("⌚⌚⌚⌚Uploading material for course: " + courseId);
-            // Console.WriteLine("⌚⌚⌚⌚Uploading material for user: " + currentUser.Id);
-            // Console.WriteLine("⌚⌚⌚⌚Uploading material with title: " + title);
-            // Console.WriteLine("⌚⌚⌚⌚Uploading material with description: " + description);
-
             await _materialService.UploadMaterialAsync(file, courseId, title, description, currentUser.Id);
             TempData["Success"] = "Course material uploaded successfully.";
             var enrolledStudents = await _courseService.GetStudentEnrolledInCourseAsync(courseId);
@@ -142,6 +137,12 @@ public class CourseMaterialController : Controller
     {
         try
         {
+            if (id == null)
+            {
+                TempData["Error"] = "Title and description are required.";
+                return RedirectToAction(nameof(Edit), new { id });
+            }
+
             await _materialService.UpdateMaterialAsync(id, title, description);
             TempData["Success"] = "Course material updated successfully.";
         }

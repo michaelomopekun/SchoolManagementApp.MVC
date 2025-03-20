@@ -36,7 +36,7 @@ namespace SchoolManagementApp.MVC.Controllers
 
 
         [HttpGet("CourseList")]
-        [Authorize(Roles = "Student")]
+        [Authorize(Roles = "Student, Admin")]
         public async Task<IActionResult> CourseList()
         {
             var userClaim = User.FindFirst(ClaimTypes.NameIdentifier);

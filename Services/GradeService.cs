@@ -187,9 +187,11 @@ namespace SchoolManagementApp.MVC.Models
 
         public async Task<int> GetTotalGradedStudentsForLecturerAsync(int lecturerId)
         {
+            var academicSession = await _context.AcademicSettings.FirstOrDefaultAsync();
+
             return await _context.Grades
                 .Include(g => g.Course)
-                .Where(g => g.Course.LecturerId == lecturerId)
+                .Where(g => g.Course.LecturerId == lecturerId && g.AcademicSession == academicSession.CurrentSession && g.Semester == academicSession.CurrentSemester)
                 .Select(g => g.UserId)
                 .Distinct()
                 .CountAsync();
