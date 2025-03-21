@@ -29,6 +29,7 @@ namespace SchoolManagementApp.MVC.Models
         public virtual User? Lecturer { get; set; }
         public virtual ICollection<UserCourse>? EnrolledUsers { get; set; } = new List<UserCourse>();
         public virtual ICollection<Grade>? Grades { get; set; }
+        public virtual ICollection<Conversation>? Conversations { get; set; }
     }
 
     public class CourseMaterial

@@ -23,8 +23,11 @@ namespace SchoolManagementApp.MVC.Models
         public Level Level { get; set; }
 
         public virtual ICollection<UserCourse> EnrolledCourses { get; set; } = new List<UserCourse>();
-        public virtual ICollection<Grade> Grades { get; set; }
-        public virtual ICollection<Course> TaughtCourses { get; set; }
+        public virtual ICollection<Grade>? Grades { get; set; }
+        public virtual ICollection<Course>? TaughtCourses { get; set; }
+        public virtual ICollection<ConversationParticipant>? Conversations { get; set; }
+        public virtual ICollection<Message>? SentMessages { get; set; }
+        public virtual ICollection<MessageReaction>? MessageReactions { get; set; }
     }
 
     public class RolePermission

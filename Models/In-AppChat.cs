@@ -104,11 +104,13 @@ public class Message
 
     public DateTime EditedAt { get; set; }
 
+
     public Conversation? Conversation { get; set; }
 
     public virtual User? Sender { get; set; }
 
     public virtual Message? ReplyToMessage { get; set; }
+    public int? AttachmentId { get; set; }
 
     public virtual MessageAttachment? Attachment { get; set; }
 
@@ -161,6 +163,10 @@ public class MessageReaction
 
 public class MessageAttachment
 {
+    public int Id { get; set; }
+
+    public int MessageId { get; set; }
+
     public string? Url { get; set; }
 
     public string? Type { get; set; }
@@ -168,6 +174,8 @@ public class MessageAttachment
     public string? Name { get; set; }
 
     public string? Size { get; set; }
+
+    public virtual Message? Message { get; set; }
 }
 
 

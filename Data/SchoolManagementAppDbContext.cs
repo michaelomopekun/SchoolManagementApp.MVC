@@ -4,9 +4,9 @@ using SchoolManagementApp.MVC.Models;
 public class SchoolManagementAppDbContext : DbContext
 {
 
-     public SchoolManagementAppDbContext()
-        {
-        }
+    public SchoolManagementAppDbContext()
+    {
+    }
 
     public DbSet<User> Users { get; set; }
     public DbSet<Course> Course { get; set; }
@@ -19,6 +19,11 @@ public class SchoolManagementAppDbContext : DbContext
     public DbSet<CourseMaterialDownload> CourseMaterialDownloads { get; set; }
     public DbSet<AcademicSetting> AcademicSettings { get; set; }
     public DbSet<Notification> Notifications { get; set; }
+    public DbSet<ConversationParticipant> ConversationParticipants { get; set; }
+    public DbSet<Conversation> Conversations { get; set; }
+    public DbSet<Message> Messages { get; set; }
+    public DbSet<MessageAttachment> MessageAttachments { get; set; }
+    public DbSet<MessageReaction> MessageReactions { get; set; }
     // public DbSet<GradeReport> GradeReports { get; set; }
 
     public SchoolManagementAppDbContext(DbContextOptions<SchoolManagementAppDbContext> options) : base(options) { }
@@ -47,7 +52,7 @@ public class SchoolManagementAppDbContext : DbContext
 
         modelBuilder.Entity<UserCourse>(entity =>
         {
-           entity.HasKey(e => e.Id);
+            entity.HasKey(e => e.Id);
 
             // Configure Id as identity column
             entity.Property(e => e.Id)
@@ -65,7 +70,7 @@ public class SchoolManagementAppDbContext : DbContext
                 .WithMany(c => c.EnrolledUsers)
                 .HasForeignKey(uc => uc.CourseId)
                 .OnDelete(DeleteBehavior.Restrict);
-            
+
             // entity.HasOne(uc => uc.User)
             //     .WithMany(u => u.TaughtCourses)
             //     .HasForeignKey(uc => uc.LecturerId)
@@ -152,7 +157,7 @@ public class SchoolManagementAppDbContext : DbContext
                 .HasDefaultValueSql("GETUTCDATE()");
         });
 
-        modelBuilder.Entity<CourseMaterial>(entity => 
+        modelBuilder.Entity<CourseMaterial>(entity =>
         {
             entity.ToTable("CourseMaterials");
             entity.HasKey(e => e.Id);
@@ -193,5 +198,114 @@ public class SchoolManagementAppDbContext : DbContext
                 .HasForeignKey(s => s.StudentId)
                 .OnDelete(DeleteBehavior.NoAction);
         });
+
+        modelBuilder.Entity<Conversation>(entity =>
+        {
+            entity.ToTable("Conversations");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Type).IsRequired();
+            entity.Property(e => e.CreatedAt).IsRequired().HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.IsActive).IsRequired().HasDefaultValue(true);
+            entity.Property(e => e.IsDeleted).IsRequired().HasDefaultValue(false);
+
+            entity.HasOne(e => e.Course)
+                .WithMany(c => c.Conversations)
+                .HasForeignKey(c => c.CourseId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<ConversationParticipant>(entity =>
+        {
+            entity.ToTable("ConversationParticipants");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.ConversationId).IsRequired();
+            entity.Property(e => e.UserId).IsRequired();
+            entity.Property(e => e.JoinedAt).IsRequired().HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.LastReadAt).IsRequired().HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.IsDeleted).IsRequired().HasDefaultValue(false);
+            entity.Property(e => e.IsActive).IsRequired().HasDefaultValue(true);
+            entity.Property(e => e.IsTyping).IsRequired().HasDefaultValue(false);
+            entity.Property(e => e.IsMuted).IsRequired().HasDefaultValue(false);
+
+            entity.HasOne(e => e.Conversation)
+                .WithMany(c => c.Participants)
+                .HasForeignKey(c => c.ConversationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.Conversations)
+                .HasForeignKey(u => u.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.LastReadMessage)
+                .WithMany()
+                .HasForeignKey(e => e.LastReadMessageId)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        modelBuilder.Entity<Message>(entity =>
+        {
+            entity.ToTable("Messages");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Content).IsRequired();
+            entity.Property(e => e.SentAt).IsRequired().HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.IsDeleted).IsRequired().HasDefaultValue(false);
+            entity.Property(e => e.IsEdited).IsRequired().HasDefaultValue(false);
+            entity.Property(e => e.Status).IsRequired().HasDefaultValue(MessageStatus.Sent);
+
+            entity.HasOne(e => e.Conversation)
+                .WithMany(c => c.Messages)
+                .HasForeignKey(c => c.ConversationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Sender)
+                .WithMany(e => e.SentMessages)
+                .HasForeignKey(e => e.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.ReplyToMessage)
+                .WithMany()
+                .HasForeignKey(e => e.ReplyToMessageId)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        modelBuilder.Entity<MessageReaction>(entity =>
+        {
+            entity.ToTable("MessageReactions");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Reaction).IsRequired();
+            entity.Property(e => e.ReactedAt).IsRequired().HasDefaultValueSql("GETUTCDATE()");
+
+            entity.HasOne(e => e.Message)
+                .WithMany(m => m.Reactions)
+                .HasForeignKey(e => e.MessageId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.MessageReactions)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        modelBuilder.Entity<MessageAttachment>(entity =>
+        {
+            entity.ToTable("MessageAttachments");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Url).IsRequired();
+            entity.Property(e => e.Type).IsRequired();
+            entity.Property(e => e.Name).IsRequired();
+            entity.Property(e => e.Size).IsRequired();
+
+            entity.HasOne(e => e.Message)
+                .WithOne(m => m.Attachment)
+                .HasForeignKey<MessageAttachment>(e => e.MessageId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
     }
 }
