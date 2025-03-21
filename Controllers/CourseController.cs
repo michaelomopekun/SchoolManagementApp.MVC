@@ -1,10 +1,10 @@
 
-using System.Linq.Expressions;
+// using System.Linq.Expressions;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
-using Microsoft.Identity.Client;
+// using Microsoft.Identity.Client;
 using SchoolManagementApp.MVC.Models;
 using SchoolManagementApp.MVC.Repository;
 using SchoolManagementApp.MVC.Services;
