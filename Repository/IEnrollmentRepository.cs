@@ -10,5 +10,6 @@ namespace SchoolManagementApp.MVC.Repository
         Task WithdrawAsync(int userId, int courseId);
         Task<UserCourse?> GetEnrollmentAsync(int userId, int courseId);
         Task UpdateEnrollmentAsync(UserCourse enrollment);
+        Task<IEnumerable<User>> GetEnrolledCourseLecturersAsync(int studentId);
     }
 }

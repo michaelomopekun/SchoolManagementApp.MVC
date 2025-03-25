@@ -75,4 +75,29 @@ public class EnrollmentRepository : IEnrollmentRepository
             await _context.SaveChangesAsync();
         }
     }
+
+public async Task<IEnumerable<User>> GetEnrolledCourseLecturersAsync(int studentId)
+{
+    try
+    {
+        return await _context.UserCourses
+            .Where(e => e.UserId == studentId && e.Status == EnrollmentStatus.Active)
+            .Join(_context.Users,
+                e => e.Course.LecturerId,
+                u => u.Id,
+                (e, u) => new
+                {
+                    Lecturer = u,
+                    CourseName = e.Course.Name
+                })
+            .Distinct()
+            .AsNoTracking()
+            .Select(x => (x.Lecturer))
+            .ToListAsync();
+    }
+    catch (Exception ex)
+    {
+        throw new Exception($"Error getting enrolled course lecturers for student {studentId}", ex);
+    }
 }
+    }

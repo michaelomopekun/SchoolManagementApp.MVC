@@ -19,13 +19,15 @@ namespace SchoolManagementApp.MVC.Controllers
         private readonly IStudentRepository _studentRepository;
         private readonly IAuthService _authService;
         private readonly JwtService _jwtService;
+        private readonly ILogger<AccountController> _logger;
 
-        public AccountController(SchoolManagementAppDbContext context, IAuthService authService, JwtService jwtService, IStudentRepository studentRepository)
+        public AccountController(SchoolManagementAppDbContext context, IAuthService authService, JwtService jwtService, IStudentRepository studentRepository, ILogger<AccountController> logger)
         {
             _context = context;
             _authService = authService;
             _jwtService = jwtService;
             _studentRepository = studentRepository;
+            _logger = logger;
             // _lecturerRepository = lecturerRepository;
         }
     
@@ -59,7 +61,7 @@ namespace SchoolManagementApp.MVC.Controllers
         var permissions = await _authService.GetPermissionsForRole(model.Role.ToString());
         var jwtToken = _jwtService.GenerateToken(user.Id, user.Username, model.Role.ToString(), permissions);
 
-        Console.WriteLine($"⌚⌚⌚⌚⌚⌚⌚  {jwtToken}");
+        _logger.LogInformation($"⌚⌚⌚⌚⌚⌚⌚  {jwtToken}");
         
         var userToGetRole = await _studentRepository.GetUserByUsernameAsync(model.Username);
 

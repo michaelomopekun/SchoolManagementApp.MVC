@@ -9,6 +9,7 @@ using Microsoft.IdentityModel.Tokens;
 using SchoolManagementApp.MVC.Authorization;
 using SchoolManagementApp.MVC.Hubs;
 using SchoolManagementApp.MVC.Models;
+using SchoolManagementApp.MVC.Repositories;
 using SchoolManagementApp.MVC.Repository;
 using SchoolManagementApp.MVC.Services;
 using Serilog;
@@ -174,6 +175,10 @@ builder.Services.AddScoped<IAcademicSettingService, AcademicSettingService>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<StudentPromotionService>();
+builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+builder.Services.AddScoped<IConversationRepository, ConversationRepository>();
+builder.Services.AddScoped<IChatService, ChatService>();
+
 builder.Services.AddLogging(loggingBuilder =>
     {
         loggingBuilder.AddConsole();
@@ -208,6 +213,7 @@ app.MapControllerRoute(
 
 app.MapFallbackToFile("index.html");
 app.MapHub<NotificationHub>("/notificationHub");
+app.MapHub<ChatHub>("/chatHub");
 
 app.UseHangfireDashboard("/hangfire", new DashboardOptions
 {

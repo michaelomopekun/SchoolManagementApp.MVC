@@ -36,13 +36,17 @@
     <link rel="stylesheet" href="~/css/site.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.0/signalr.min.js"></script>
     <script src="~/js/notifications.js"></script>
-    <script src="~/js/site.js"></script>
+    <script src="~/js/chat.js"></script>
+    <link rel="stylesheet" href="~/css/chat.css" />
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     @await RenderSectionAsync("Styles", required: false)
+
+    
 </head>
 
 <body>
+    <partial name="_ChatPartial" />
     <script>
         function logout() {
             localStorage.removeItem("jwtToken");
@@ -226,6 +230,11 @@
                                 <a class="nav-link text-light" asp-area="" asp-controller="Home"
                                     asp-action="Privacy">Privacy</a>
                             </li>
+                            <li class="nav-item">
+                                <a href="javascript:void(0);" class="nav-link text-light" id="open-chat-popup">
+                                    <i class="fas fa-comments"></i> Chat
+                                </a>
+                            </li>
                         </ul>
 
 
@@ -263,44 +272,43 @@
                     </div>
                 </div>
             </nav>
-
-
         }
 
-        @* @if(!hideNavbar){
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark border-body border-bottom box-shadow mb-3">
-            <div class="container-fluid ">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">SchoolManagementApp.MVC</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Course" asp-action="CourseList">Courses</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="About">About</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                        <li class="nav-item ms-auto">
-                            <form asp-controller="Account" asp-action="Logout" asp-route-returnUrl="@Url.Action("Index", "Home")" method="post" id="logoutForm">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-danger text-light">Logout</button>
-                            </form>
-                        <li>
-                    </ul>
+            <div id="chat-popup-container" style="display: none;">
+                <div id="chat-popup" class="chat-popup">
+                    <div class="chat-header">
+                        <span id="chat-title">Chat</span>
+                        <button id="close-chat-popup" class="close-btn">&times;</button>
+                    </div>
+
+                    <!-- Add lecturer selection section -->
+                    <div id="lecturer-selection" class="chat-content">
+                        <div class="lecturer-search mb-3">
+                            <input type="text" class="form-control" id="lecturer-search" placeholder="Search lecturer...">
+                        </div>
+                        <div id="lecturer-list" class="lecturer-list">
+                            <!-- Lecturers will be loaded here -->
+                        </div>
+                    </div>
+
+                    <div id="chat-content" class="chat-content">
+                        <!-- Messages will be loaded here -->
+                    </div>
+                    <div class="chat-footer">
+                        <div class="chat-input-container">
+                            <textarea id="chat-input" placeholder="Type a message..." rows="1"></textarea>
+                            <button id="send-chat-message" class="send-btn">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </div>
+                        <a href="#" id="view-full-chat" class="mt-2">
+                            View Full Chat <i class="fas fa-external-link-alt"></i>
+                        </a>
+                    </div>
                 </div>
             </div>
-        </nav>
-    }
-    </header> *@
+
+
         <div class="container">
             <main role="main" class="pb-3">
                 @RenderBody()
@@ -314,7 +322,7 @@
         </footer>
         <script src="~/lib/jquery/dist/jquery.min.js"></script>
         <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="~/js/site.js" asp-append-version="true"></script>
+        <script src="~/js/chat.js" asp-append-version="true"></script>
         @await RenderSectionAsync("Scripts", required: false)
 </body>
 
