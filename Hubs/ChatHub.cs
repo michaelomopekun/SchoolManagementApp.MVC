@@ -17,22 +17,18 @@ public class ChatHub : Hub
     {
         try
         {
-            var userId = Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userId == null)
+            // Only broadcast to others in the group, don't save
+            await Clients.OthersInGroup(conversationId.ToString()).SendAsync("ReceiveMessage", new
             {
-                throw new HubException("User not authenticated");
-            }
-
-            var savedMessage = await _chatService.SendMessage(conversationId, int.Parse(userId), content);
-            await Clients.Group(conversationId.ToString()).SendAsync("ReceiveMessage", savedMessage);
-            
-            _logger.LogInformation("Message sent in conversation {ConversationId} by user {UserId}", 
-                conversationId, userId);
+                conversationId = conversationId,
+                content = content,
+                sentAt = DateTime.UtcNow
+            });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error sending message in conversation {ConversationId}", conversationId);
-            throw new HubException("Failed to send message");
+            _logger.LogError(ex, "Error broadcasting message in conversation {ConversationId}", conversationId);
+            throw new HubException("Failed to broadcast message");
         }
     }
 

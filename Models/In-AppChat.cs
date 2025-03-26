@@ -8,7 +8,7 @@ public class Conversation
 
     public string? name { get; set; }
 
-    public int CourseId { get; set; }
+    public int? CourseId { get; set; }
 
     public DateTime CreatedAt { get; set; }
 

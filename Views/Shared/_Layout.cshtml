@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Identity
+@using System.Security.Claims
 @inject SignInManager<IdentityUser> SignInManager
 @inject UserManager<IdentityUser> UserManager
 
@@ -6,10 +7,11 @@
     var hideNavbar = Context.Request.Path.StartsWithSegments("/Account/Login") ||
     Context.Request.Path.StartsWithSegments("/Account/Register") || Context.Request.Path.StartsWithSegments("/") ||
     Context.Request.Path.StartsWithSegments("/register") || Context.Request.Path.StartsWithSegments("/Account");
+    var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
 }
 
-@* @if (TempData["Success"] != null)
+@if (TempData["Success"] != null)
 {
     <div class="alert alert-success">@TempData["Success"]</div>
 }
@@ -17,7 +19,7 @@
 @if (TempData["Error"] != null)
 {
     <div class="alert alert-danger">@TempData["Error"]</div>
-} *@
+}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -274,39 +276,37 @@
             </nav>
         }
 
-            <div id="chat-popup-container" style="display: none;">
-                <div id="chat-popup" class="chat-popup">
-                    <div class="chat-header">
-                        <span id="chat-title">Chat</span>
-                        <button id="close-chat-popup" class="close-btn">&times;</button>
-                    </div>
+    <div id="chat-popup-container" style="display: none;" data-user-id="@userId">
+        <div id="chat-popup" class="chat-popup">
+            <div class="chat-header">
+                <span id="chat-title">Chat with Lecturer</span>
+                <button id="close-chat-popup" class="close-btn">&times;</button>
+            </div>
 
-                    <!-- Add lecturer selection section -->
-                    <div id="lecturer-selection" class="chat-content">
-                        <div class="lecturer-search mb-3">
-                            <input type="text" class="form-control" id="lecturer-search" placeholder="Search lecturer...">
-                        </div>
-                        <div id="lecturer-list" class="lecturer-list">
-                            <!-- Lecturers will be loaded here -->
-                        </div>
-                    </div>
+            <div id="lecturer-selection" class="chat-content">
+                <select id="lecturer-dropdown" class="form-select mb-3">
+                    <option value="">Select a lecturer to chat with</option>
+                    @foreach (var lecturer in ViewBag.Lecturers ?? new List<dynamic>())
+                    {
+                        <option value="@lecturer.Id">@lecturer.Name</option>
+                    }
+                </select>
+            </div>
 
-                    <div id="chat-content" class="chat-content">
-                        <!-- Messages will be loaded here -->
-                    </div>
-                    <div class="chat-footer">
-                        <div class="chat-input-container">
-                            <textarea id="chat-input" placeholder="Type a message..." rows="1"></textarea>
-                            <button id="send-chat-message" class="send-btn">
-                                <i class="fas fa-paper-plane"></i>
-                            </button>
-                        </div>
-                        <a href="#" id="view-full-chat" class="mt-2">
-                            View Full Chat <i class="fas fa-external-link-alt"></i>
-                        </a>
-                    </div>
+            <div id="chat-messages" class="chat-content" style="display: none;">
+                <div id="message-list"></div>
+            </div>
+
+            <div class="chat-footer">
+                <div class="chat-input-container">
+                    <textarea id="chat-input" placeholder="Type a message..." rows="1" disabled></textarea>
+                    <button id="send-chat-message" class="send-btn" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
                 </div>
             </div>
+        </div>
+    </div>
 
 
         <div class="container">

@@ -1,3 +1,13 @@
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger">@TempData["Error"]</div>
+}
+
 <div id="chat-popup-container" style="display: none;">
     <div id="chat-popup" class="chat-popup">
         <div class="chat-header">
@@ -28,53 +38,3 @@
         </div>
     </div>
 </div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const lecturerDropdown = document.getElementById('lecturer-dropdown');
-    const chatMessages = document.getElementById('chat-messages');
-    const chatInput = document.getElementById('chat-input');
-    const sendButton = document.getElementById('send-chat-message');
-
-    async function loadLecturers() {
-        try {
-            lecturerDropdown.innerHTML = '<option value="">Loading lecturers...</option>';
-            
-            const response = await fetch('/Chat/GetLecturers');
-            const data = await response.json();
-
-            if (data.error) {
-                lecturerDropdown.innerHTML = `<option value="" disabled>${data.error}</option>`;
-                console.error('Server error:', data.error);
-                return;
-            }
-
-            lecturerDropdown.innerHTML = '<option value="">Select a lecturer...</option>';
-            data.forEach(lecturer => {
-                const option = document.createElement('option');
-                option.value = lecturer.id;
-                option.textContent = `${lecturer.name} - ${lecturer.courseName}`;
-                lecturerDropdown.appendChild(option);
-            });
-        } catch (error) {
-            console.error('Error:', error);
-            lecturerDropdown.innerHTML = '<option value="" disabled>Failed to load lecturers</option>';
-        }
-    }
-
-    // Load lecturers when chat is opened
-    document.getElementById('open-chat-popup').addEventListener('click', function() {
-        loadLecturers();
-    });
-
-    // Handle lecturer selection
-    lecturerDropdown.addEventListener('change', function() {
-        const selected = this.value;
-        chatInput.disabled = !selected;
-        sendButton.disabled = !selected;
-        if (selected) {
-            chatMessages.style.display = 'block';
-        }
-    });
-});
-</script>

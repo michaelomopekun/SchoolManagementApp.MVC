@@ -47,10 +47,25 @@ public class ChatService : IChatService
 
     public async Task<Conversation> CreateOneOnOneChat(int studentId, int lecturerId)
     {
+        // lecturerId = 3;
+        if(lecturerId <= 0)
+        {
+            _logger.LogError("Invalid lecturerId {LecturerId}",lecturerId);
+            
+            // return BadRequest(new { success = false, error = "Invalid lecturer ID" });
+        }
+
         try
         {
+            var existingConversation = await _conversationRepository.GetConversationBetweenUsersAsync(studentId, lecturerId);
+            if (existingConversation != null)
+            {
+                return existingConversation;
+            }
+
             var conversation = new Conversation
             {
+
                 Type = ConversationType.StudentLecturerChat,
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true,

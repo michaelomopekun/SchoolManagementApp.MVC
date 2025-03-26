@@ -179,4 +179,17 @@ public class ConversationRepository : IConversationRepository
         }
 
     }
+
+            public async Task<Conversation?> GetConversationBetweenUsersAsync(int user1Id, int user2Id)
+        {
+            if(user1Id != 0 && user2Id != 0){
+            return await _context.Conversations
+                .Include(c => c.Participants)
+                .FirstOrDefaultAsync(c => 
+                    c.Type == ConversationType.StudentLecturerChat &&
+                    c.Participants.Any(p => p.UserId == user1Id) &&
+                    c.Participants.Any(p => p.UserId == user2Id));
+            }
+            return null;
+        }
 }

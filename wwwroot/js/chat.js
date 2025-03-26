@@ -1,62 +1,111 @@
 ﻿document.addEventListener("DOMContentLoaded", function () {
-  const chatPopupContainer = document.getElementById("chat-popup-container");
-  const openChatPopup = document.getElementById("open-chat-popup");
-  const closeChatPopup = document.getElementById("close-chat-popup");
+  const chatContainer = document.getElementById("chat-popup-container");
+  const lecturerDropdown = document.getElementById("lecturer-dropdown");
   const chatInput = document.getElementById("chat-input");
-  const sendChatMessage = document.getElementById("send-chat-message");
-  const viewFullChat = document.getElementById("view-full-chat");
+  const sendButton = document.getElementById("send-chat-message");
+  const messageList = document.getElementById("message-list");
 
-  let connection = new signalR.HubConnectionBuilder()
+  let currentConversationId = null;
+  let isSendingMessage = false; // Prevent multiple simultaneous sends
+
+  // Initialize SignalR
+  const connection = new signalR.HubConnectionBuilder()
     .withUrl("/chatHub")
     .withAutomaticReconnect()
     .build();
 
-  let currentConversationId = null;
-  let selectedLecturerId = null;
+  connection
+    .start()
+    .catch((err) => console.error("SignalR Connection Error:", err));
 
-  connection.start().catch((err) => console.error(err));
+  // Load lecturers when chat is opened
+  document
+    .getElementById("open-chat-popup")
+    ?.addEventListener("click", function () {
+      chatContainer.style.display = "block";
+      loadLecturers();
+    });
 
-  connection.on("ReceiveMessage", function (message) {
-    appendMessage(message);
+  // Close chat popup
+  document
+    .getElementById("close-chat-popup")
+    ?.addEventListener("click", function () {
+      chatContainer.style.display = "none";
+    });
+
+  // Handle lecturer selection
+  lecturerDropdown?.addEventListener("change", async function () {
+    const lecturerId = parseInt(this.value, 10);
+    console.log("Selected lecturer ID:", lecturerId);
+
+    if (!lecturerId || isNaN(lecturerId)) {
+      console.warn("Invalid lecturer ID selected");
+      return;
+    }
+
+    try {
+      console.log("Starting chat with lecturer:", lecturerId);
+
+      const response = await fetch("/Chat/StartChat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ lecturerId: lecturerId }),
+      });
+
+      const data = await response.json();
+      console.log("Start chat response:", data);
+
+      if (!data.success) {
+        throw new Error(data.error || "Failed to start chat");
+      }
+
+      currentConversationId = data.conversationId;
+      chatInput.disabled = false;
+      sendButton.disabled = false;
+      document.getElementById("chat-messages").style.display = "block";
+
+      // Update chat title with lecturer name
+      const selectedOption =
+        lecturerDropdown.options[lecturerDropdown.selectedIndex];
+      document.getElementById(
+        "chat-title"
+      ).textContent = `Chat with ${selectedOption.text}`;
+
+      // Load existing messages if any
+      await loadMessages(currentConversationId);
+    } catch (error) {
+      console.error("Error starting chat:", error);
+      alert("Failed to start chat: " + error.message);
+    }
   });
 
-  connection.on("UserTyping", function (userName) {
-    showTypingIndicator(userName);
-  });
+  // Send message
+  sendButton?.removeEventListener("click", sendMessage); // Ensure no duplicate listeners
+  sendButton?.addEventListener("click", sendMessage);
 
-  openChatPopup?.addEventListener("click", function () {
-    chatPopupContainer.style.display = "block";
-    loadRecentChats();
-  });
+  chatInput?.removeEventListener("keypress", handleKeyPress); // Ensure no duplicate listeners
+  chatInput?.addEventListener("keypress", handleKeyPress);
 
-  closeChatPopup?.addEventListener("click", function () {
-    chatPopupContainer.style.display = "none";
-  });
-
-  chatInput?.addEventListener("keypress", function (e) {
+  function handleKeyPress(e) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
-  });
-
-  sendChatMessage?.addEventListener("click", sendMessage);
-
-  async function joinConversation(conversationId) {
-    if (currentConversationId) {
-      await connection.invoke("LeaveConversation", currentConversationId);
-    }
-    currentConversationId = conversationId;
-    await connection.invoke("JoinConversation", conversationId);
-    await loadMessages(conversationId);
   }
 
   async function sendMessage() {
+    if (isSendingMessage || !currentConversationId || !chatInput.value.trim()) {
+      return;
+    }
+
+    isSendingMessage = true;
     const content = chatInput.value.trim();
-    if (!content || !currentConversationId) return;
 
     try {
-      await fetch("/Chat/SendMessage", {
+      // First, save the message via the controller
+      const response = await fetch("/Chat/SendMessage", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -64,276 +113,99 @@
         body: JSON.stringify({
           conversationId: currentConversationId,
           content: content,
+          replyToMessage: null,
         }),
       });
 
-      await connection.invoke("SendMessage", currentConversationId, content);
-      chatInput.value = "";
-    } catch (error) {
-      console.error("Error sending message:", error);
-    }
-  }
-
-  async function loadRecentChats() {
-    try {
-      const response = await fetch("/Chat/GetRecentChats", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
-      });
-
       if (!response.ok) {
-        throw new Error("Failed to load chats");
-      }
-
-      const chats = await response.json();
-      displayRecentChats(chats);
-    } catch (error) {
-      console.error("Error loading recent chats:", error);
-    }
-  }
-
-  function displayRecentChats(chats) {
-    const chatContent = document.querySelector("#chat-content");
-    chatContent.innerHTML = chats
-      .map(
-        (chat) => `
-        <div class="chat-item" onclick="joinConversation(${chat.id})">
-            <div class="chat-title">${chat.name || "Direct Message"}</div>
-            <div class="chat-preview">${
-              chat.lastMessage?.content || "No messages yet"
-            }</div>
-        </div>
-    `
-      )
-      .join("");
-  }
-
-  function appendMessage(message) {
-    const messageDiv = document.createElement("div");
-    messageDiv.className = `message ${
-      message.isSentByMe ? "sent" : "received"
-    }`;
-    messageDiv.innerHTML = `
-      <div class="message-content">${message.content}</div>
-      <div class="message-time">${new Date(
-        message.sentAt
-      ).toLocaleTimeString()}</div>
-    `;
-    document.querySelector("#chat-content").appendChild(messageDiv);
-    scrollToBottom();
-  }
-
-  function scrollToBottom() {
-    const chatContent = document.querySelector("#chat-content");
-    chatContent.scrollTop = chatContent.scrollHeight;
-  }
-
-  async function loadLecturers() {
-    try {
-      console.log("Loading lecturers...");
-      const response = await fetch("/Chat/GetLecturers");
-
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+        throw new Error("Failed to send message");
       }
 
       const data = await response.json();
-      console.log("Received lecturers:", data);
+      if (data.success) {
+        // Clear input and show message locally
+        chatInput.value = "";
+        appendMessage(data.message);
 
-      if (data.error) {
-        console.error("Server error:", data.error);
-        return;
-      }
-
-      const lecturerDropdown = document.getElementById("lecturer-dropdown");
-      if (!lecturerDropdown) {
-        console.error("Lecturer dropdown element not found!");
-        return;
-      }
-
-      // Clear existing options
-      lecturerDropdown.innerHTML =
-        '<option value="">Select lecturer to chat with</option>';
-
-      if (Array.isArray(data) && data.length > 0) {
-        data.forEach((lecturer) => {
-          const option = document.createElement("option");
-          option.value = lecturer.id;
-          option.textContent = `${lecturer.name} - ${lecturer.courseName}`;
-          lecturerDropdown.appendChild(option);
-        });
-      } else {
-        console.log("No lecturers found or invalid data format");
-        const option = document.createElement("option");
-        option.disabled = true;
-        option.textContent = "No lecturers available";
-        lecturerDropdown.appendChild(option);
+        // Then broadcast via SignalR to other users
+        await connection.invoke("SendMessage", currentConversationId, content);
       }
     } catch (error) {
-      console.error("Error loading lecturers:", error);
-      const lecturerDropdown = document.getElementById("lecturer-dropdown");
-      if (lecturerDropdown) {
-        lecturerDropdown.innerHTML =
-          '<option value="">Error loading lecturers</option>';
-      }
+      console.error("Error sending message:", error);
+      alert("Failed to send message: " + error.message);
+    } finally {
+      isSendingMessage = false;
     }
   }
 
-  // Ensure the function is called when chat is opened
-  document
-    .getElementById("open-chat-popup")
-    ?.addEventListener("click", function () {
-      console.log("Chat popup opened");
-      document.getElementById("chat-popup-container").style.display = "block";
-      loadLecturers();
-    });
-
-  async function startChat(lecturerId) {
-    try {
-      const response = await fetch("/Chat/StartChat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ lecturerId }),
-      });
-
-      if (!response.ok) throw new Error("Failed to start chat");
-
-      const result = await response.json();
-      if (result.conversationId) {
-        currentConversationId = result.conversationId;
-        await joinConversation(currentConversationId);
-        loadMessages(currentConversationId);
-      }
-    } catch (error) {
-      console.error("Error starting chat:", error);
-    }
+  // Append message to chat
+  function appendMessage(message) {
+    const userId = chatContainer.dataset.userId;
+    const messageDiv = document.createElement("div");
+    messageDiv.className = `message ${
+      message.senderId === parseInt(userId) ? "sent" : "received"
+    }`;
+    messageDiv.innerHTML = `
+            <div class="message-content">${message.content}</div>
+            <div class="message-time">${new Date(
+              message.sentAt
+            ).toLocaleTimeString()}</div>
+        `;
+    messageList.appendChild(messageDiv);
+    messageList.scrollTop = messageList.scrollHeight;
   }
 
-  // Update the existing chat popup button click handler
-  document
-    .getElementById("open-chat-popup")
-    .addEventListener("click", function () {
-      if (!currentConversationId) {
-        loadLecturers();
+  // SignalR message receiver
+  connection.on("ReceiveMessage", function (message) {
+    if (message.conversationId === currentConversationId) {
+      // Only append messages from other users
+      if (message.senderId !== parseInt(chatContainer.dataset.userId)) {
+        appendMessage(message);
       }
-      document.getElementById("chat-popup-container").style.display = "block";
-    });
-});
-
-document.addEventListener("DOMContentLoaded", function () {
-  const chatPopupContainer = document.getElementById("chat-popup-container");
-  const lecturerSelection = document.getElementById("lecturer-selection");
-  const chatMessages = document.getElementById("chat-messages");
-  const lecturerSearch = document.getElementById("lecturer-search");
-  const lecturerList = document.getElementById("lecturer-list");
-
-  // Load lecturers when chat is opened
-  document
-    .getElementById("open-chat-popup")
-    .addEventListener("click", function () {
-      chatPopupContainer.style.display = "block";
-      loadLecturers();
-    });
+    }
+  });
 
   async function loadLecturers() {
     try {
       const response = await fetch("/Chat/GetLecturers");
       const lecturers = await response.json();
 
-      lecturerList.innerHTML = lecturers
-        .map(
-          (lecturer) => `
-              <div class="lecturer-item" onclick="startChat(${lecturer.id})">
-                  <div class="name">${lecturer.name}</div>
-                  <div class="course">${lecturer.course}</div>
-              </div>
-          `
-        )
-        .join("");
+      lecturerDropdown.innerHTML =
+        '<option value="">Select a lecturer</option>';
+      lecturers.forEach((lecturer) => {
+        const option = document.createElement("option");
+        option.value = lecturer.id;
+        option.textContent = `${lecturer.name} - ${lecturer.courseName}`;
+        lecturerDropdown.appendChild(option);
+      });
     } catch (error) {
       console.error("Error loading lecturers:", error);
     }
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
-    const chatPopup = document.getElementById("chat-popup-container");
-    const lecturerDropdown = document.getElementById("lecturer-dropdown");
-    const chatInput = document.getElementById("chat-input");
-    const sendButton = document.getElementById("send-chat-message");
-    let currentConversationId = null;
+  async function loadMessages(conversationId) {
+    try {
+      const response = await fetch(`/Chat/GetMessages/${conversationId}`);
 
-    // Load lecturers when chat is opened
-    document
-      .getElementById("open-chat-popup")
-      ?.addEventListener("click", function () {
-        chatPopup.style.display = "block";
-        loadLecturers();
-      });
-
-    async function loadLecturers() {
-      try {
-        const response = await fetch("/Chat/GetLecturers");
-        const lecturers = await response.json();
-
-        if (lecturers.error) {
-          console.error(lecturers.error);
-          return;
-        }
-
-        lecturerDropdown.innerHTML = `
-                <option value="">Select lecturer to chat with</option>
-                ${lecturers
-                  .map(
-                    (l) => `
-                    <option value="${l.id}"> ${l.name} }</option>
-                `
-                  )
-                  .join("")}
-            `;
-      } catch (error) {
-        console.error("Error loading lecturers:", error);
-      }
-    }
-
-    // Handle lecturer selection
-    lecturerDropdown.addEventListener("change", async function () {
-      const lecturerId = this.value;
-      if (!lecturerId) {
-        chatInput.disabled = true;
-        sendButton.disabled = true;
+      if (response.status === 404) {
+        const errorData = await response.json();
+        console.warn("No messages found:", errorData.error);
+        messageList.innerHTML =
+          '<div class="no-messages">No messages in this conversation</div>';
         return;
       }
 
-      try {
-        const response = await fetch("/Chat/StartChat", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ lecturerId: parseInt(lecturerId) }),
-        });
-
-        const result = await response.json();
-        if (result.error) {
-          console.error(result.error);
-          return;
-        }
-
-        currentConversationId = result.id;
-        chatInput.disabled = false;
-        sendButton.disabled = false;
-        document.getElementById("chat-messages").style.display = "block";
-
-        // Load existing messages
-        await loadMessages(currentConversationId);
-      } catch (error) {
-        console.error("Error starting chat:", error);
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Failed to load messages:", errorData);
+        throw new Error(errorData.error || "Failed to load messages");
       }
-    });
-  });
+
+      const messages = await response.json();
+      messageList.innerHTML = "";
+      messages.forEach(appendMessage);
+    } catch (error) {
+      console.error("Error loading messages:", error);
+    }
+  }
 });

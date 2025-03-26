@@ -42,5 +42,6 @@ namespace SchoolManagementApp.MVC.Models
             _context.Course.Update(course);
             await _context.SaveChangesAsync();
         }
+
     }
 }

@@ -1,4 +1,3 @@
-
 using System.Security.Claims;
 using Microsoft.AspNetCore.Mvc;
 using SchoolManagementApp.MVC.Repository;
@@ -25,7 +24,7 @@ public class ChatController : Controller
         {
             _logger.LogError("User Claim not found");
 
-            throw new Exception("User not found");
+            // throw new Exception("User not found");
         }
 
         return int.Parse(userId);
@@ -78,20 +77,29 @@ public class ChatController : Controller
         try
         {
             var userId = await GetUserId();
-            var message = await _chatService.SendMessage
-                (
-                    request.ConversationId,
-                    userId,
-                    request.Content,
-                    request.ReplyToMessageId
-                );
-            return Json(new { success = true, message });
+            // Save message to database
+            var message = await _chatService.SendMessage(
+                request.ConversationId,
+                userId,
+                request.Content,
+                request.ReplyToMessageId
+            );
+
+            return Json(new { 
+                success = true, 
+                message = new {
+                    id = message.Id,
+                    content = message.Content,
+                    senderId = message.SenderId,
+                    sentAt = message.SentAt,
+                    conversationId = message.ConversationId
+                }
+            });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to send message");
-            TempData["Error"] = "Failed to send message";
-            return Json(new { success = false, message = "failed to send message" });
+            return Json(new { success = false, error = ex.Message });
         }
     }
 
@@ -114,20 +122,37 @@ public class ChatController : Controller
     }
 
     [HttpPost]
-    public async Task<IActionResult> StartChat(int lecturerId)
+    public async Task<IActionResult> StartChat([FromBody] StartChatRequest request)
     {
+        _logger.LogInformation("StartChat called with lecturerId: {LecturerId}", request.LecturerId);
+
         try
         {
+            if (request.LecturerId <= 0)
+            {
+                _logger.LogWarning("Invalid lecturer ID received: {LecturerId}", request.LecturerId);
+                return BadRequest(new { success = false, error = "Invalid lecturer ID" });
+            }
+
             var userId = await GetUserId();
-            var conversation = await _chatService.CreateOneOnOneChat(userId, lecturerId);
-            return RedirectToAction(nameof(Conversation), new { id = conversation.Id });
+            _logger.LogInformation("Starting chat between user {UserId} and lecturer {LecturerId}", 
+                userId, request.LecturerId);
+
+            var conversation = await _chatService.CreateOneOnOneChat(userId, request.LecturerId);
+
+            return Json(new { 
+                success = true, 
+                conversationId = conversation.Id,
+                lecturerId = request.LecturerId
+            });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to start chat");
-            TempData["Error"] = "Failed to start chat";
-            return Json(new { error = "Failed to start chat" });
-            
+            _logger.LogError(ex, "Failed to start chat with lecturer {LecturerId}", request.LecturerId);
+            return BadRequest(new { 
+                success = false, 
+                error = ex.Message 
+            });
         }
     }
 
@@ -209,6 +234,11 @@ public class ChatController : Controller
         public int ConversationId { get; set; }
         public string Content { get; set; }
         public int? ReplyToMessageId { get; set; }
+    }
+
+    public class StartChatRequest
+    {
+        public int LecturerId { get; set; }
     }
 
 }

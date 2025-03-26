@@ -10,5 +10,6 @@ namespace SchoolManagementApp.MVC.Repositories
         Task UpdateAsync(Conversation conversation);
         Task<bool> DeleteAsync(int id);
         Task<IEnumerable<Conversation>> GetCourseConversationsAsync(int courseId);
+        Task<Conversation> GetConversationBetweenUsersAsync(int user1Id, int user2Id);
     }
 }
