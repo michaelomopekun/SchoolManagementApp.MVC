@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SchoolManagementApp.MVC.Models;
@@ -105,6 +106,7 @@ public class CourseService : ICourseService
         return lecturerCourses;
     }
 
+    [HttpGet]
     public async Task<List<UserCourse>> GetStudentEnrolledInCourseAsync(int courseId)
     {
         return await _context.UserCourses

@@ -1,223 +1,163 @@
-﻿document.addEventListener("DOMContentLoaded", function () {
-  // DOM Elements
-  const chatContainer = document.getElementById("chat-popup-container");
-  const lecturerDropdown = document.getElementById("lecturer-dropdown");
-  const chatInput = document.getElementById("chat-input");
-  const sendButton = document.getElementById("send-chat-message");
-  const messageList = document.getElementById("message-list");
+﻿import ChatService from "./ChatService.js";
 
-  // State Variables
-  let currentConversationId = null;
-  let isSendingMessage = false; // Prevent multiple simultaneous sends
+export default class Chat {
+  constructor(chatContainer, messageList, chatInput, sendButton) {
+    this.chatContainer = chatContainer;
 
-  // Initialize SignalR for real-time communication
-  const connection = new signalR.HubConnectionBuilder()
-    .withUrl("/chatHub")
-    .withAutomaticReconnect()
-    .build();
+    this.messageList = messageList;
 
-  connection
-    .start()
-    .catch((err) => console.error("SignalR Connection Error:", err));
+    this.chatInput = chatInput;
 
-  // 1. Open Chat Popup
-  document
-    .getElementById("open-chat-popup")
-    ?.addEventListener("click", function () {
-      chatContainer.style.display = "block"; // Show the chat popup
-      loadLecturers(); // Load the list of lecturers
+    this.sendButton = sendButton;
+
+    this.lecturerDropdown = lecturerDropdown;
+
+    this.conversationId = null;
+
+    this.isSendingMessage = false;
+
+    this.initEventListeners();
+
+    this.initSignalR();
+  }
+
+  openChatPopup() {
+    console.log("Opening chat popup...");
+    if (this.chatContainer) {
+      this.chatContainer.style.display = "block";
+      if (this.lecturerDropdown) {
+        this.loadLecturers(this.lecturerDropdown);
+      } else {
+        console.error("Lecturer dropdown not initialized");
+      }
+    } else {
+      console.error("Chat container not initialized");
+    }
+  }
+
+  closeChatPopup() {
+    this.chatContainer.style.display = "none";
+  }
+
+  initSignalR() {
+    this.connection = new signalR.HubConnectionBuilder()
+      .withUrl("/chatHub")
+      .withAutomaticReconnect()
+      .build();
+
+    this.connection
+      .start()
+      .catch((err) => console.error("SignalR Connection Error:", err));
+
+    this.connection.on("ReceiveMessage", (message) => {
+      if (message.conversationId === this.conversationId) {
+        this.appendMessage(message);
+      }
     });
+  }
 
-  // 2. Close Chat Popup
-  document
-    .getElementById("close-chat-popup")
-    ?.addEventListener("click", function () {
-      chatContainer.style.display = "none"; // Hide the chat popup
-    });
-
-  // 3. Load Lecturers
-  async function loadLecturers() {
+  async loadLecturers(lecturerDropdown) {
     try {
-      const response = await fetch("/Chat/GetLecturers"); // Fetch lecturers from the server
-      const lecturers = await response.json();
+      const lecturers = await ChatService.loadLecturers();
 
-      // Populate the dropdown with lecturers
       lecturerDropdown.innerHTML =
-        '<option value="">Select a lecturer</option>';
+        '<option value=""> Select a Lecturer </option>';
+
       lecturers.forEach((lecturer) => {
         const option = document.createElement("option");
+
         option.value = lecturer.id;
-        option.textContent = `${lecturer.name} - ${lecturer.courseName}`;
+        option.textContent = `${lecturer.name}`;
+
         lecturerDropdown.appendChild(option);
       });
-    } catch (error) {
-      console.error("Error loading lecturers:", error);
+    } catch (err) {
+      console.error("Error loading lecturer:", err);
     }
   }
 
-  // 4. Handle Lecturer Selection
-  lecturerDropdown?.addEventListener("change", async function () {
-    const lecturerId = parseInt(this.value, 10); // Get the selected lecturer ID
-    console.log("Selected lecturer ID:", lecturerId);
-
-    if (!lecturerId || isNaN(lecturerId)) {
-      console.warn("Invalid lecturer ID selected");
-      return;
-    }
-
+  async startChat(lecturerId) {
     try {
-      console.log("Starting chat with lecturer:", lecturerId);
+      const data = await ChatService.startChat(lecturerId);
 
-      // Start a new chat or fetch an existing conversation
-      const response = await fetch("/Chat/StartChat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ lecturerId: lecturerId }),
-      });
+      this.currentConversationId = data.conversationId;
 
-      const data = await response.json();
-      console.log("Start chat response:", data);
+      this.chatInput.disabled = false;
 
-      if (!data.success) {
-        throw new Error(data.error || "Failed to start chat");
-      }
+      this.sendButton.disabled = false;
 
-      // Update the current conversation ID
-      currentConversationId = data.conversationId;
-
-      // Enable the chat input and send button
-      chatInput.disabled = false;
-      sendButton.disabled = false;
-
-      // Show the chat messages container
-      document.getElementById("chat-messages").style.display = "block";
-
-      // Update the chat title with the lecturer's name
-      const selectedOption =
-        lecturerDropdown.options[lecturerDropdown.selectedIndex];
-      document.getElementById(
-        "chat-title"
-      ).textContent = `Chat with ${selectedOption.text}`;
-
-      // Load existing messages for the conversation
-      await loadMessages(currentConversationId);
-
-      // Join the SignalR group for this conversation
-      await connection.invoke(
-        "JoinConversation",
-        currentConversationId.toString()
-      );
-    } catch (error) {
+      await this.loadMessages();
+    } catch (err) {
       console.error("Error starting chat:", error);
-      alert("Failed to start chat: " + error.message);
-    }
-  });
-
-  // 5. Load Messages for a Conversation
-  async function loadMessages(conversationId) {
-    try {
-      const response = await fetch(`/Chat/GetMessages/${conversationId}`);
-
-      if (response.status === 404) {
-        console.warn("No messages found for this conversation");
-        messageList.innerHTML =
-          '<div class="no-messages">No messages in this conversation</div>';
-        return;
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Failed to load messages:", errorData);
-        throw new Error(errorData.error || "Failed to load messages");
-      }
-
-      const messages = await response.json();
-      messageList.innerHTML = ""; // Clear the message list
-      messages.forEach(appendMessage); // Append each message to the chat
-    } catch (error) {
-      console.error("Error loading messages:", error);
     }
   }
 
-  // 6. Send a Message
-  async function sendMessage() {
-    if (isSendingMessage || !currentConversationId || !chatInput.value.trim()) {
-      return; // Prevent sending if already sending or input is empty
-    }
+  async loadMessage() {
+    try {
+      const messages = await ChatService.loadMessages(
+        this.currentConversationId
+      );
 
-    isSendingMessage = true;
-    const content = chatInput.value.trim(); // Get the message content
+      this.messageList.innerHTML = "";
+
+      messages.forEach((message) => this.appendMessage(message));
+    } catch (err) {
+      console.error("Error loading messages: ", err);
+    }
+  }
+
+  async sendMessage() {
+    if (this.isSendingMessage || !this.chatInput.value.trim()) return;
+
+    this.isSendingMessage = true;
+
+    const content = this.chatInput.value.trim();
 
     try {
-      // Save the message via the controller
-      const response = await fetch("/Chat/SendMessage", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          conversationId: currentConversationId,
-          content: content,
-          replyToMessage: null,
-        }),
-      });
+      const data = await ChatServices.sendMessage(
+        this.currentConversationId,
+        content
+      );
 
-      if (!response.ok) {
-        throw new Error("Failed to send message");
-      }
+      this.appendMessage(data.message);
 
-      const data = await response.json();
-      if (data.success) {
-        // Clear the input and show the message locally
-        chatInput.value = "";
-        appendMessage(data.message);
-
-        // Broadcast the message via SignalR to other users
-        await connection.invoke("SendMessage", currentConversationId, content);
-      }
-    } catch (error) {
-      console.error("Error sending message:", error);
-      alert("Failed to send message: " + error.message);
+      this.chatInput.value = "";
+    } catch (err) {
+      console.error("Error sending message: ", err);
     } finally {
-      isSendingMessage = false; // Reset the sending state
+      this.isSendingMessage = false;
     }
   }
 
-  // 7. Append a Message to the Chat
-  function appendMessage(message) {
-    const userId = chatContainer.dataset.userId; // Get the current user's ID
+  appendMessage(message) {
+    const userId = this.chatContainer.dataset.userId;
+
     const messageDiv = document.createElement("div");
+
     messageDiv.className = `message ${
-      message.senderId === parseInt(userId) ? "sent" : "received"
+      message.senderId === parseInt(userId) ? "send" : "received"
     }`;
-    messageDiv.innerHTML = `
-            <div class="message-content">${message.content}</div>
-            <div class="message-time">${new Date(
-              message.sentAt
-            ).toLocaleTimeString()}</div>
-        `;
-    messageList.appendChild(messageDiv); // Add the message to the list
-    messageList.scrollTop = messageList.scrollHeight; // Scroll to the bottom
+
+    messageDiv.innerHTML = `<div class = "message-content"> ${
+      message.content
+    } </div>
+                            <div class = "message-time"> ${new Date(
+                              message.sentAt
+                            ).toLocaleTimeString()} </div>`;
+
+    this.messageList.appendChild(messageDiv);
+
+    this.messageList.scrollTop = this.messageList.scrollHeight;
   }
 
-  // 8. Handle Real-Time Messages via SignalR
-  connection.on("ReceiveMessage", function (message) {
-    if (message.conversationId === currentConversationId) {
-      // Only append messages from other users
-      if (message.senderId !== parseInt(chatContainer.dataset.userId)) {
-        appendMessage(message);
-      }
-    }
-  });
+  initEventListeners() {
+    this.sendButton.addEventListener("click", () => this.sendMessage());
 
-  // Add event listeners for sending messages
-  sendButton?.addEventListener("click", sendMessage);
-  chatInput?.addEventListener("keypress", function (e) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
-  });
-});
+    this.chatInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        this.sendMessage();
+      }
+    });
+  }
+}
