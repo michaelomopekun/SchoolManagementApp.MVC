@@ -2,6 +2,11 @@ export default class ChatService {
   static async loadLecturers() {
     const response = await fetch("Chat/GetLecturers");
 
+    console.log(
+      "Fetching Lecturers from Endpoint, response): ",
+      response.json()
+    );
+
     if (!response.ok) {
       throw new Error("Failed to load lecturers");
     }

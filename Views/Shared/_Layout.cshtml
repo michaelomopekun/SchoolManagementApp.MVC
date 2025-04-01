@@ -37,13 +37,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <link rel="stylesheet" href="~/css/site.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.0/signalr.min.js"></script>
-    <script src="~/wwwroot/js/notifications.js"></script>
-    <script src="~/js/ChatService.js"></script>
-    <script src="~/js/chat.js"></script>
-    <script src="~/js/Student_chat.js"></script>
+    <script type= "module" src="~/wwwroot/js/notifications.js"></script>
+    <script type="module" src="~/js/Student_chat.js"></script>
+    @* <script type="module" src="~/js/ChatService.js"></script> *@
+    @* <script type="module" src="~/js/chat.js"></script> *@
+    @* <script type="module" src="~/js/dist/Student_chat.js"></script> *@
+
+    @* <script src="~/js/SignalR.js"></script> *@
     <link rel="stylesheet" href="~/css/chat.css" />
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script type= "module" src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script type= "module" src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     @await RenderSectionAsync("Styles", required: false)
 
     

@@ -228,6 +228,13 @@ public class ChatController : Controller
     }
 
 
+    [HttpGet]
+    public async Task<IActionResult> GetMessages(int conversationId) {
+        var messages = await _chatService.GetConversationMessages(conversationId, page: 1);
+        return Json(messages);
+    }
+
+
 
     public class SendMessageRequest
     {
