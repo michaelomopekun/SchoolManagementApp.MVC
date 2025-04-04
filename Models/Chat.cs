@@ -182,9 +182,13 @@ public class MessageAttachment
 public enum MessageStatus
 {
     Sent,
+
     Delivered,
+    
     Read,
+    
     Failed,
+    
     Deleted
 
 }

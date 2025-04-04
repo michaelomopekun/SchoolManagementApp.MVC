@@ -1,224 +1,276 @@
 document.addEventListener("DOMContentLoaded", function () {
-  // DOM Elements
   const chatContainer = document.getElementById("chat-popup-container");
   const lecturerDropdown = document.getElementById("lecturer-dropdown");
   const chatInput = document.getElementById("chat-input");
   const sendButton = document.getElementById("send-chat-message");
   const messageList = document.getElementById("message-list");
-
-  // State Variables
   let currentConversationId = null;
-  let isSendingMessage = false; // Prevent multiple simultaneous sends
+  let currentReceiverId = null;
+  let isSendingMessage = false;
 
-  // Initialize SignalR for real-time communication
+  // Initialize SignalR
   const connection = new signalR.HubConnectionBuilder()
-    .withUrl("/chatHub")
-    .withAutomaticReconnect()
-    .build();
+      .withUrl("/chatHub")
+      .withAutomaticReconnect()
+      .build();
 
-  connection
-    .start()
-    .catch((err) => console.error("SignalR Connection Error:", err));
+  connection.start()
+      .catch(err => console.error("SignalR Connection Error:", err));
 
-  // 1. Open Chat Popup
-  document
-    .getElementById("open-chat-popup")
-    ?.addEventListener("click", function () {
-      chatContainer.style.display = "block"; // Show the chat popup
-      loadLecturers(); // Load the list of lecturers
-    });
+  // Handle received messages
+  connection.on("ReceiveMessage", function (message) {
+      if (message.conversationId === currentConversationId) {
+          appendMessage(message);
+      }
+  });
 
-  // 2. Close Chat Popup
-  document
-    .getElementById("close-chat-popup")
-    ?.addEventListener("click", function () {
-      chatContainer.style.display = "none"; // Hide the chat popup
-    });
-
-  // 3. Load Lecturers
+  // Load Lecturers
   async function loadLecturers() {
     try {
-      const response = await fetch("/Chat/GetLecturers"); // Fetch lecturers from the server
-      const lecturers = await response.json();
+        console.log("Fetching recipients...");
+        const response = await fetch("/Chat/GetLecturers");
+        console.log("Response status:", response.status);
 
-      // Populate the dropdown with lecturers
-      lecturerDropdown.innerHTML =
-        '<option value="">Select a lecturer</option>';
-      lecturers.forEach((lecturer) => {
-        const option = document.createElement("option");
-        option.value = lecturer.id;
-        option.textContent = `${lecturer.name} - ${lecturer.courseName}`;
-        lecturerDropdown.appendChild(option);
-        console.log(lecturers);
-      });
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Raw response:", data);
+
+        // Handle both array and wrapped formats
+        const lecturers = Array.isArray(data) ? data : (data.$values || []);
+        console.log("Processed lecturers:", lecturers);
+
+        lecturerDropdown.innerHTML = '<option value="">Select a recipient</option>';
+        
+        if (lecturers.length === 0) {
+            lecturerDropdown.innerHTML += '<option value="" disabled>No recipients available</option>';
+            return;
+        }
+
+        lecturers.forEach(lecturer => {
+            const option = document.createElement("option");
+            option.value = lecturer.id;
+            option.textContent = `${lecturer.name || 'Unknown'}`;
+            lecturerDropdown.appendChild(option);
+        });
     } catch (error) {
-      console.error("Error loading lecturers:", error);
+        console.error("Error loading recipients:", error);
+        lecturerDropdown.innerHTML = '<option value="">Error loading recipients</option>';
     }
-  }
+}
 
-  // 4. Handle Lecturer Selection
+  // Handle recipient selection
   lecturerDropdown?.addEventListener("change", async function () {
-    const lecturerId = parseInt(this.value, 10); // Get the selected lecturer ID
-    console.log("Selected lecturer ID:", lecturerId);
+    const lecturerId = parseInt(this.value, 10);
+    currentReceiverId = lecturerId;
 
     if (!lecturerId || isNaN(lecturerId)) {
-      console.warn("Invalid lecturer ID selected");
-      return;
-    }
-
-    try {
-      console.log("Starting chat with lecturer:", lecturerId);
-
-      // Start a new chat or fetch an existing conversation
-      const response = await fetch("/Chat/StartChat", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ lecturerId: lecturerId }),
-      });
-
-      const data = await response.json();
-      console.log("Start chat response:", data);
-
-      if (!data.success) {
-        throw new Error(data.error || "Failed to start chat");
-      }
-
-      // Update the current conversation ID
-      currentConversationId = data.conversationId;
-
-      // Enable the chat input and send button
-      chatInput.disabled = false;
-      sendButton.disabled = false;
-
-      // Show the chat messages container
-      document.getElementById("chat-messages").style.display = "block";
-
-      // Update the chat title with the lecturer's name
-      const selectedOption =
-        lecturerDropdown.options[lecturerDropdown.selectedIndex];
-      document.getElementById(
-        "chat-title"
-      ).textContent = `Chat with ${selectedOption.text}`;
-
-      // Load existing messages for the conversation
-      await loadMessages(currentConversationId);
-
-      // Join the SignalR group for this conversation
-      await connection.invoke(
-        "JoinConversation",
-        currentConversationId.toString()
-      );
-    } catch (error) {
-      console.error("Error starting chat:", error);
-      alert("Failed to start chat: " + error.message);
-    }
-  });
-
-  // 5. Load Messages for a Conversation
-  async function loadMessages(conversationId) {
-    try {
-      const response = await fetch(`/Chat/GetMessages/${conversationId}`);
-
-      if (response.status === 404) {
-        console.warn("No messages found for this conversation");
-        messageList.innerHTML =
-          '<div class="no-messages">No messages in this conversation</div>';
+        console.warn("Invalid recipient selected:", this.value);
         return;
-      }
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error("Failed to load messages:", errorData);
-        throw new Error(errorData.error || "Failed to load messages");
-      }
-
-      const messages = await response.json();
-      messageList.innerHTML = ""; // Clear the message list
-      messages.forEach(appendMessage); // Append each message to the chat
-    } catch (error) {
-      console.error("Error loading messages:", error);
     }
-  }
-
-  // 6. Send a Message
-  async function sendMessage() {
-    if (isSendingMessage || !currentConversationId || !chatInput.value.trim()) {
-      return; // Prevent sending if already sending or input is empty
-    }
-
-    isSendingMessage = true;
-    const content = chatInput.value.trim(); // Get the message content
 
     try {
-      // Save the message via the controller
-      const response = await fetch("/Chat/SendMessage", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          conversationId: currentConversationId,
-          content: content,
-          replyToMessage: null,
-        }),
-      });
+        console.log("Starting chat with recipient:", lecturerId);
+        const response = await fetch("/Chat/StartChat", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+            body: JSON.stringify({ 
+                lecturerId: lecturerId,
+                isPrivateChat: true
+            }),
+            credentials: 'include' // Include cookies in the request
+        });
 
-      if (!response.ok) {
-        throw new Error("Failed to send message");
-      }
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `Failed to start chat: ${response.status}`);
+        }
 
-      const data = await response.json();
-      if (data.success) {
-        // Clear the input and show the message locally
-        chatInput.value = "";
-        appendMessage(data.message);
+        const data = await response.json();
+        console.log("Chat started successfully:", data);
 
-        // Broadcast the message via SignalR to other users
-        await connection.invoke("SendMessage", currentConversationId, content);
-      }
+        currentConversationId = data.conversationId;
+        chatInput.disabled = false;
+        sendButton.disabled = false;
+        
+        document.getElementById("chat-messages").style.display = "block";
+        const selectedOption = lecturerDropdown.options[lecturerDropdown.selectedIndex];
+        document.getElementById("chat-title").textContent = `Chat with ${selectedOption.text}`;
+
+        //debugging
+        console.log(`conversationId: ${currentConversationId}`);
+        console.log(`receiverId: ${currentReceiverId}`);
+
+        await loadMessages(currentConversationId);
+        await connection.invoke("JoinConversation", currentConversationId.toString());
     } catch (error) {
-      console.error("Error sending message:", error);
-      alert("Failed to send message: " + error.message);
-    } finally {
-      isSendingMessage = false; // Reset the sending state
+        console.error("Error starting chat:", error);
+        alert(`Failed to start chat: ${error.message}`);
     }
-  }
+});
 
-  // 7. Append a Message to the Chat
-  function appendMessage(message) {
-    const userId = chatContainer.dataset.userId; // Get the current user's ID
-    const messageDiv = document.createElement("div");
-    messageDiv.className = `message ${
-      message.senderId === parseInt(userId) ? "sent" : "received"
-    }`;
-    messageDiv.innerHTML = `
-            <div class="message-content">${message.content}</div>
-            <div class="message-time">${new Date(
-              message.sentAt
-            ).toLocaleTimeString()}</div>
-        `;
-    messageList.appendChild(messageDiv); // Add the message to the list
-    messageList.scrollTop = messageList.scrollHeight; // Scroll to the bottom
-  }
 
-  // 8. Handle Real-Time Messages via SignalR
-  connection.on("ReceiveMessage", function (message) {
-    if (message.conversationId === currentConversationId) {
-      // Only append messages from other users
-      if (message.senderId !== parseInt(chatContainer.dataset.userId)) {
-        appendMessage(message);
-      }
+
+
+    // Load messages for the current conversation
+    async function loadMessages(conversationId) {
+        if (!conversationId) {
+            console.error("No conversation ID provided");
+            return;
+        }
+    
+        try {
+            console.log("Loading messages for conversation:", conversationId);
+    
+            const response = await fetch(`/Chat/GetMessages/${conversationId}`, 
+            {
+                method: 'GET',
+                headers: {
+                    "Accept": "application/json",
+                    "Content-Type": "application/json"
+                },
+                credentials: 'include'
+            });
+    
+            console.log("Response status:", response.status);
+
+            if(response.status === 500)
+            {
+                console.log("internal error");
+                messageList.innerHTML = `<div class="no-message">Internal error 500</div>`;
+                return;
+            }
+    
+            if (!response.ok)
+            {
+                if(response.status == 404)
+                {
+                    console.warn("No messages found for this conversation.");
+                    messageList.innerHTML = '<div class="no-messages">No messages yet</div>';
+                    return;
+                }
+                const errorData = await response.text();
+                console.error("Error response:", errorData);
+                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log("Raw messages response:", data);
+    
+            messageList.innerHTML = "";
+    
+            // Handle direct array format
+            const messages = data.messages || [];
+            console.log("Processed messages:", messages);
+    
+            if (!data.messages || data.messages.length === 0)
+            {
+                messageList.innerHTML = '<div class="no-messages">No messages yet</div>';
+                return;
+            }
+    
+            messages.forEach(message => 
+            {
+                const messageDiv = document.createElement("div");
+
+                messageDiv.className = `message ${message.senderId === currentReceiverId ? 'received' : 'sent'}`;
+        
+                const contentP = document.createElement("p");
+                
+                contentP.textContent = message.content;
+        
+                messageDiv.appendChild(contentP);
+        
+                messageList.appendChild(messageDiv);
+        
+                messageList.scrollTop = messageList.scrollHeight; 
+            });
+    
+            messageList.scrollTop = messageList.scrollHeight;
+
+        } 
+        catch (error) 
+        {
+            console.error("Error loading messages:", error);
+            messageList.innerHTML = '<div class="error-message">Error loading messages</div>';
+        }
     }
-  });
 
-  // Add event listeners for sending messages
+
+    function appendMessage(message)
+    {
+        const messageDiv = document.createElement("div");
+
+        messageDiv.className = `message ${message.senderId === currentReceiverId ? 'received' : 'sent'}`;
+
+        const contentP = document.createElement("p");
+        
+        contentP.textContent = message.content;
+
+        messageDiv.appendChild(contentP);
+
+        messageList.appendChild(messageDiv);
+
+        messageList.scrollTop = messageList.scrollHeight; 
+    }
+
+
+
+
+  // Send Message
   sendButton?.addEventListener("click", sendMessage);
   chatInput?.addEventListener("keypress", function (e) {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      sendMessage();
-    }
+      if (e.key === "Enter" && !e.shiftKey) {
+          e.preventDefault();
+          sendMessage();
+      }
+  });
+
+  async function sendMessage() {
+      if (isSendingMessage || !currentConversationId || !chatInput.value.trim()) {
+          return;
+      }
+
+      isSendingMessage = true;
+      const content = chatInput.value.trim();
+
+      try {
+          const response = await fetch("/Chat/SendMessage", {
+              method: "POST",
+              headers: {
+                  "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                  conversationId: currentConversationId,
+                  content: content,
+                  receiverId: currentReceiverId
+              }),
+          });
+
+          if (!response.ok) {
+              throw new Error("Failed to send message");
+          }
+
+          chatInput.value = "";
+      } catch (error) {
+          console.error("Error sending message:", error);
+      } finally {
+          isSendingMessage = false;
+      }
+  }
+
+  // Show/Hide Chat Popup
+  document.getElementById("open-chat-popup")?.addEventListener("click", function () {
+      chatContainer.style.display = "block";
+      loadLecturers();
+  });
+
+  document.getElementById("close-chat-popup")?.addEventListener("click", function () {
+      chatContainer.style.display = "none";
   });
 });

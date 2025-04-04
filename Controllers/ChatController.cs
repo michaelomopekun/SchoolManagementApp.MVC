@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using SchoolManagementApp.MVC.Repository;
 using SchoolManagementApp.MVC.Services;
 
+
+[Route("Chat")]
 public class ChatController : Controller
 {
 
@@ -71,7 +73,7 @@ public class ChatController : Controller
         }
     }
 
-    [HttpPost]
+    [HttpPost("SendMessage")]
     public async Task<IActionResult> SendMessage([FromBody] SendMessageRequest request)
     {
         try
@@ -103,7 +105,7 @@ public class ChatController : Controller
         }
     }
 
-    [HttpPost]
+    [HttpPost("DeleteMessage")]
     public async Task<IActionResult> DeleteMessage(int messageId)
     {
         try
@@ -121,9 +123,23 @@ public class ChatController : Controller
         }
     }
 
-    [HttpPost]
+    [HttpPost("StartChat")]
     public async Task<IActionResult> StartChat([FromBody] StartChatRequest request)
     {
+        if (request == null)
+        {
+            _logger.LogWarning("StartChatRequest is null");
+            return BadRequest(new { success = false, error = "Invalid request" });
+        }
+
+        var UserId = await GetUserId();
+
+        if (UserId <= 0)
+        {
+            _logger.LogWarning("User ID is invalid: {UserId}", UserId);
+            return Unauthorized(new { success = false, error = "Invalid user ID" });
+        }
+
         _logger.LogInformation("StartChat called with lecturerId: {LecturerId}", request.LecturerId);
 
         try
@@ -179,7 +195,7 @@ public class ChatController : Controller
         }
     }
 
-    [HttpPost]
+    [HttpPost("GetUnreadMessageCount")]
     public async Task<IActionResult> GetUnreadMessageCount(int conversationId)
     {
         var userId = await GetUserId();
@@ -187,7 +203,7 @@ public class ChatController : Controller
         return Json(new {count});
     }
 
-    [HttpGet]
+    [HttpGet("GetRecentChats")]
     public async Task<IActionResult> GetRecentChats()
     {
         try
@@ -203,7 +219,7 @@ public class ChatController : Controller
         }
     }
 
-    [HttpGet]
+    [HttpGet("GetLecturers")]
     public async Task<IActionResult> GetLecturers()
     {
         try
@@ -228,11 +244,41 @@ public class ChatController : Controller
     }
 
 
-    [HttpGet]
-    public async Task<IActionResult> GetMessages(int conversationId) {
-        var messages = await _chatService.GetConversationMessages(conversationId, page: 1);
-        return Json(messages);
+
+[HttpGet("GetMessages/{conversationId}")]
+public async Task<IActionResult> GetMessages([FromRoute] int conversationId)
+{
+    try
+    {
+        _logger.LogInformation("Fetching messages for conversation {ConversationId}", conversationId);
+
+        var userId = await GetUserId();
+        var messages = await _chatService.GetConversationMessages(conversationId);
+
+        if (messages == null || !messages.Any())
+        {
+            _logger.LogWarning("No messages found for conversation {ConversationId}", conversationId);
+            return Ok(new List<Message>()); // Return empty list directly
+        }
+
+        var messageList = messages.Select(m => new
+        {
+            id = m.Id,
+            senderId = m.SenderId,
+            receiverId = m.ReceiverId,
+            content = m.Content,
+            sentAt = m.SentAt.ToString("yyyy-MM-ddTHH:mm:ss"),
+            status = m.Status
+        }).ToList();
+
+        return Json( new {messages = messageList}); // Return messages directly
     }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "Error getting messages for conversation {ConversationId}", conversationId);
+        return StatusCode(500, new { error = "Failed to load messages" });
+    }
+}
 
 
 
