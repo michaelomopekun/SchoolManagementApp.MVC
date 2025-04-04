@@ -161,8 +161,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
             const data = await response.json();
             console.log("Raw messages response:", data);
+
+            const sortedMessages = data.messages.sort((a,b) =>
+            {
+                return new Date(a.sentAt) - new Date(b.sentAt);
+            });
     
             messageList.innerHTML = "";
+
+            const fragment = document.createDocumentFragment();
     
             // Handle direct array format
             const messages = data.messages || [];
@@ -185,11 +192,22 @@ document.addEventListener("DOMContentLoaded", function () {
                 contentP.textContent = message.content;
         
                 messageDiv.appendChild(contentP);
+
+                const timeSpan = document.createElement("span");
+
+                timeSpan.className = "message-time";
+                
+                const messageDate = new Date(message.sentAt);
+                
+                timeSpan.textContent = messageDate.toLocaleString();
+                
+                messageDiv.appendChild(timeSpan);
         
-                messageList.appendChild(messageDiv);
-        
-                messageList.scrollTop = messageList.scrollHeight; 
+                fragment.appendChild(messageDiv);
+
             });
+
+            messageList.appendChild(fragment);
     
             messageList.scrollTop = messageList.scrollHeight;
 
@@ -213,6 +231,17 @@ document.addEventListener("DOMContentLoaded", function () {
         contentP.textContent = message.content;
 
         messageDiv.appendChild(contentP);
+
+        // Add timestamp for new messages
+        const timeSpan = document.createElement("span");
+
+        timeSpan.className = "message-time";
+        
+        const messageDate = new Date(message.sentAt);
+        
+        timeSpan.textContent = messageDate.toLocaleTimeString();
+        
+        messageDiv.appendChild(timeSpan);
 
         messageList.appendChild(messageDiv);
 
