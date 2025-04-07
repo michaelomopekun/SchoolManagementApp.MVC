@@ -134,6 +134,8 @@ public class ConversationRepository : IConversationRepository
 
         try
         {
+            _logger.LogInformation("--------------Getting user conversations with ID: {Id}--------------", userId);
+
             var Conversations = await _context.Conversations
                 .AsNoTracking()
                 .Include(c => c.Participants)
@@ -142,6 +144,8 @@ public class ConversationRepository : IConversationRepository
                 .Where(u => u.Participants.Any(u => u.UserId == userId) && !u.IsDeleted)
                 .OrderByDescending(c => c.LastMessageAt)
                 .ToListAsync();
+
+            _logger.LogInformation("--------------User conversations retrieved with ID: {Id}--------------", Conversations.FirstOrDefault()?.Id);
 
             if (Conversations == null)
             {

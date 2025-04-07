@@ -11,5 +11,6 @@ namespace SchoolManagementApp.MVC.Repository
         Task<UserCourse?> GetEnrollmentAsync(int userId, int courseId);
         Task UpdateEnrollmentAsync(UserCourse enrollment);
         Task<IEnumerable<User>> GetEnrolledCourseLecturersAsync(int studentId);
+        Task<IEnumerable<UserCourse>> GetLecturersStudentsAsync(int lecturerId);
     }
 }

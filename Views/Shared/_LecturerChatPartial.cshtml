@@ -1,0 +1,74 @@
+    <div id="chat-popup-container" class="chat-popup" style="display: none;">
+        <!-- Main Chat List View -->
+        <div id="chats-list-view">
+            <div class="chat-header">
+                <h3>Student Chats</h3>
+                <div class="header-actions">
+                    <button id="new-chat-btn" class="btn btn-link text-light">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                    <button id="close-chat-popup" class="close-btn">&times;</button>
+                </div>
+            </div>
+            <div class="chat-body">
+                <div id="chats-list" class="chats-container">
+                    <!-- Active chats will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- New Chat View -->
+        <div id="new-chat-view" style="display: none;">
+            <div class="chat-header">
+                <div class="d-flex align-items-center">
+                    <button id="back-to-chats-new" class="btn btn-link text-light">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h3>New Chat</h3>
+                </div>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="chat-body">
+                <div id="students-list" class="students-container">
+                    <!-- Students list will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Individual Chat View -->
+        <div id="chat-messages-view" style="display: none;">
+            <div class="chat-header">
+                <div class="d-flex align-items-center">
+                    <button id="back-to-chats" class="btn btn-link text-light">
+                        <i class="fas fa-arrow-left"></i>
+                    </button>
+                    <h3 id="current-chat-name">Chat</h3>
+                </div>
+                <button class="close-btn">&times;</button>
+            </div>
+            <div class="chat-body">
+                <div id="chat-messages" class="messages-container">
+                    <div id="message-list" class="message-list"></div>
+                </div>
+            </div>
+            <div class="chat-footer">
+                <div class="chat-input-container">
+                    <textarea id="chat-input" placeholder="Type your message..." disabled></textarea>
+                    <button id="send-chat-message" class="send-btn" disabled>
+                        <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat toggle button with create new chat button -->
+    <div class="chat-buttons-container">
+        <button id="new-chat-toggle" class="chat-toggle-btn new-chat-btn">
+            <i class="fas fa-plus"></i>
+        </button>
+        <button id="open-chat-popup" class="chat-toggle-btn">
+            <i class="fas fa-comments"></i>
+            <span class="badge bg-danger notification-badge" style="display: none;">0</span>
+        </button>
+    </div>

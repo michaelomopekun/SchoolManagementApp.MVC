@@ -209,7 +209,25 @@ public class ChatController : Controller
         try
         {
             var userId = await GetUserId();
+
+            if (userId <= 0)
+            {
+                _logger.LogWarning("User ID is invalid: {UserId}", userId);
+                return BadRequest(new { success = false, error = "Invalid user ID" });
+            }
+
+            _logger.LogInformation("GetRecentChats called with userId: {UserId}", userId);
+
             var conversations = await _chatService.GetUserConversations(userId);
+
+            if (conversations == null || !conversations.Any())
+            {
+                _logger.LogWarning("No recent chats found for user {UserId}", userId);
+                return Json(new { success = false, message = "No recent chats found" });
+            }
+
+            _logger.LogInformation("Conversations found for user {UserId}: {ConversationsCount}", userId, conversations.Count());
+
             return Json(conversations);
         }
         catch (Exception ex)
@@ -241,6 +259,30 @@ public class ChatController : Controller
             _logger.LogError(ex, "Failed to get lecturers for student {StudentId}", await GetUserId());
             return Json(new { error = "Failed to load lecturers" });
         }
+    }
+
+    [HttpGet("GetLecturersStudents")]
+    public async Task<IActionResult> GetLecturersStudents()
+    {
+        var LecturerId = await GetUserId();
+
+        if (LecturerId <= 0)
+        {
+            _logger.LogWarning("Lecturer ID is invalid: {LecturerId}", LecturerId);
+            return BadRequest(new { success = false, error = "Invalid lecturer ID" });
+        }
+
+        _logger.LogInformation("GetLecturersStudents called with lecturerId: {LecturerId}", LecturerId);
+
+        var students = await _enrollmentRepository.GetLecturersStudentsAsync(LecturerId);
+
+        var studentList = students.Select(x => new
+        {
+            Id = x.Id,
+            Name = x.User.Username
+        });
+
+        return Json(studentList);
     }
 
 

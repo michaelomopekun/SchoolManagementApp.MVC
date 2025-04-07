@@ -176,31 +176,62 @@ public class ChatService : IChatService
         }
     }
 
-    public async Task<IEnumerable<Conversation>> GetUserConversations(int userId)
+public async Task<IEnumerable<Conversation>> GetUserConversations(int userId)
+{
+    try
     {
-        try
+        if (userId <= 0)
         {
-            var conversations = await _conversationRepository.GetUserConversationsAsync(userId);
-            
-            foreach(var conversation in conversations)
+            _logger.LogError("[Chat] Invalid userId: {UserId}", userId);
+            throw new ArgumentException("Invalid user ID");
+        }
+
+        var conversations = await _conversationRepository.GetUserConversationsAsync(userId);
+        
+        if (conversations == null)
+        {
+            _logger.LogWarning("[Chat] No conversations found for user {UserId}", userId);
+            return new List<Conversation>();
+        }
+
+        foreach(var conversation in conversations)
+        {
+            if (conversation.Participants != null)
             {
-                var otherParticipant = conversation.Participants.FirstOrDefault(p => p.UserId != userId);
+                var otherParticipant = conversation.Participants
+                    .FirstOrDefault(p => p.UserId != userId && p.User != null);
 
-                if (otherParticipant != null)
-                {
-                    conversation.name = otherParticipant.User.Username;
-                }
-
+                conversation.name = otherParticipant?.User?.Username ?? "Unknown User";
+                
+                // Add last message and unread count
+                var lastMessage = conversation.Messages?
+                    .OrderByDescending(m => m.SentAt)
+                    .FirstOrDefault();
+                    
+                conversation.LastMessageAt = lastMessage?.SentAt ?? conversation.CreatedAt;
+                conversation.LastMessage = lastMessage?.Content ?? "";
+                conversation.UnreadCount = conversation.Messages?
+                    .Count(m => !m.IsRead && m.SenderId != userId) ?? 0;
             }
-            return conversations;
+            else
+            {
+                _logger.LogWarning("[Chat] Conversation {ConversationId} has no participants", 
+                    conversation.Id);
+                conversation.name = "Unknown User";
+            }
+        }
 
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "[Chat] Failed to get conversations for user {UserId}", userId);
-            throw;
-        }
+        // Order by most recent message
+        return conversations
+            .OrderByDescending(c => c.LastMessageAt)
+            .ToList();
     }
+    catch (Exception ex)
+    {
+        _logger.LogError(ex, "[Chat] Failed to get conversations for user {UserId}", userId);
+        throw;
+    }
+}
 
     public async Task<bool> MarkConversationAsRead(int conversationId, int userId)
     {

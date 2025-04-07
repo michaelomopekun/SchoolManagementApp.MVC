@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using SchoolManagementApp.MVC.Models;
 using SchoolManagementApp.MVC.Repository;
 
@@ -100,4 +101,33 @@ public async Task<IEnumerable<User>> GetEnrolledCourseLecturersAsync(int student
         throw new Exception($"Error getting enrolled course lecturers for student {studentId}", ex);
     }
 }
+
+public async Task<IEnumerable<UserCourse>> GetLecturersStudentsAsync(int lecturerId)
+{
+    if(lecturerId <= 0)
+    {
+        throw new ArgumentException("Invalid Lecturer ID passed .", nameof(lecturerId));
     }
+
+    try
+    {
+        return await _context.UserCourses
+            .Where(e => e.LecturerId == lecturerId && e.Status == EnrollmentStatus.Active)
+            .Include(e => e.User)
+            // .Include(e => e.Course)
+            .Select(e => new UserCourse
+            {
+                UserId = e.UserId,
+                User = new User
+                {
+                    Username = e.User.Username
+                }
+            }).ToListAsync();
+    }
+    catch (Exception ex)
+    {
+        throw new Exception($"Error getting students for lecturer {lecturerId}", ex);
+    }
+}
+
+}
