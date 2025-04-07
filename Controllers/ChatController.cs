@@ -228,12 +228,25 @@ public class ChatController : Controller
 
             _logger.LogInformation("Conversations found for user {UserId}: {ConversationsCount}", userId, conversations.Count());
 
-            return Json(conversations);
+            // Create a simplified object to avoid circular references
+            var chatList = conversations.Select(c => new
+            {
+                id = c.Id,
+                studentId = c.Participants?.FirstOrDefault(p => p.UserId != userId)?.UserId,
+                studentName = c.Participants?.FirstOrDefault(p => p.UserId != userId)?.User?.Username ?? "Unknown User",
+                lastMessage = c.Messages?.OrderByDescending(m => m.SentAt).FirstOrDefault()?.Content ?? "",
+                lastMessageTime = c.Messages?.OrderByDescending(m => m.SentAt).FirstOrDefault()?.SentAt.ToString("yyyy-MM-ddTHH:mm:ss") ?? c.CreatedAt.ToString("yyyy-MM-ddTHH:mm:ss"),
+                unreadCount = c.Messages?.Count(m => !m.IsRead && m.SenderId != userId) ?? 0
+            }).ToList();
+
+            _logger.LogInformation("Found {Count} chats for user {UserId}", chatList.Count, userId);
+
+            return Json(chatList);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Failed to get recent chats for user");
-            return Json(new { error = "Failed to load recent chats" });
+            return Json(500,new { error = "Failed to load recent chats" });
         }
     }
 

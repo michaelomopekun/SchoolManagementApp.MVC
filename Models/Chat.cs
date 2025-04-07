@@ -26,6 +26,10 @@ public class Conversation
 
     public DateTime LastMessageAt { get; set; } = DateTime.UtcNow;
 
+    public string? LastMessage { get; set; }
+
+    public int UnreadCount { get; set; }
+
     public int MessageCount { get; set; } = 0;
 
     public ICollection<Message> Messages { get; set; } = new List<Message>();
@@ -90,6 +94,8 @@ public class Message
 
     public DateTime SentAt { get; set; } = DateTime.UtcNow;
 
+    public bool IsRead { get; set; } 
+    public DateTime ReadAt { get; set; } 
     public MessageStatus Status { get; set; } = MessageStatus.Sent;
 
     public bool IsDeleted { get; set; } = false;
