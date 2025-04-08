@@ -18,10 +18,14 @@ document.addEventListener("DOMContentLoaded", function () {
       .catch(err => console.error("SignalR Connection Error:", err));
 
   // Handle received messages
-  connection.on("ReceiveMessage", function (message) {
-      if (message.conversationId === currentConversationId) {
-          appendMessage(message);
-      }
+  connection.on("ReceiveMessage", async function (message) {
+      if (message.conversationId === currentConversationId)
+        {
+            await loadMessages(currentConversationId);
+
+            messageList.scrollTop = messageList.scrollHeight;
+          
+        }
   });
 
   // Load Lecturers
@@ -257,6 +261,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (e.key === "Enter" && !e.shiftKey) {
           e.preventDefault();
           sendMessage();
+        //   await loadMessages();
       }
   });
 
@@ -286,6 +291,11 @@ document.addEventListener("DOMContentLoaded", function () {
           }
 
           chatInput.value = "";
+
+          await loadMessages(currentConversationId);
+
+          messageList.scrollTop = messageList.scrollHeight;
+
       } catch (error) {
           console.error("Error sending message:", error);
       } finally {

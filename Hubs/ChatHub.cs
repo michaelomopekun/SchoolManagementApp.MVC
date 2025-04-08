@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.SignalR;
+using SchoolManagementApp.MVC.Models;
 using SchoolManagementApp.MVC.Services;
 
 public class ChatHub : Hub
@@ -13,17 +14,34 @@ public class ChatHub : Hub
         _logger = logger;
     }
 
+
     public async Task SendMessage(int conversationId, string content)
     {
         try
         {
-            // Only broadcast to others in the group, don't save
-            await Clients.OthersInGroup(conversationId.ToString()).SendAsync("ReceiveMessage", new
+            var userId = Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userName = Context.User.Identity?.Name;
+
+            if(string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(userName))
+            {
+                throw new HubException("User not authenticated");
+            }
+
+            var messageData = new
             {
                 conversationId = conversationId,
                 content = content,
-                sentAt = DateTime.UtcNow
-            });
+                sentAt = DateTime.UtcNow,
+                senderId = userId,
+                senderName = userName,
+                isRead = false,
+                status = "Sent"
+            };
+
+            // Only broadcast to others in the group, don't save
+            await Clients.Group(conversationId.ToString()).SendAsync("ReceiveMessage", messageData);
+
+            _logger.LogInformation("Message sent from {UserName} in conversation {ConversationId}: {Content}", userName, conversationId, content);
         }
         catch (Exception ex)
         {
@@ -31,6 +49,7 @@ public class ChatHub : Hub
             throw new HubException("Failed to broadcast message");
         }
     }
+
 
     public async Task JoinConversation(string conversationId)
     {

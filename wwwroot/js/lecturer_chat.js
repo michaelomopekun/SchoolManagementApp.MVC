@@ -10,30 +10,77 @@ document.addEventListener("DOMContentLoaded", async function () {
   let currentConversationId = null;
   let currentReceiverId = null;
   let connection = null;
+  let  refreshInterval;
+
+
+  function startRefreshing()
+  {
+    if(refreshInterval) clearInterval(refreshInterval);
+    refreshInterval = setInterval(() => 
+    {
+        if(currentConversationId)
+        {
+            loadMessages(currentConversationId);
+        }
+    }, 2000);
+  }
+
+  function stopRefreshing()
+  {
+    if(refreshInterval)
+    {
+        clearInterval(refreshInterval);
+        refreshInterval = null;
+    }
+  }
 
   // Initialize SignalR connection
-  async function initSignalR() {
-      try {
+  async function initSignalR() 
+  {
+      try 
+      {
+
           connection = new signalR.HubConnectionBuilder()
               .withUrl("/chatHub")
               .withAutomaticReconnect()
               .build();
 
-          connection.on("ReceiveMessage", function (message) {
+
+          connection.on("ReceiveMessage", async function (message) 
+          {
               console.log("Message received:", message);
-              if (message.conversationId === currentConversationId) {
-                  appendMessage(message);
-              } else {
-                  loadActiveChats(); // Refresh chat list for new messages
-              }
+
+              if (message.conversationId === currentConversationId) 
+                {
+                //     const messageData = 
+                //     {
+                //         content: message.content,
+                //         sentAt: message.sentAt,
+                //         senderId: message.senderId,
+                //         receiverId: message.receiverId,
+                //         conversationId: message.conversationId
+                //     }
+
+                //   appendMessage(messageData);
+                await loadMessages(currentConversationId);
+
+                  messageList.scrollTop = messageList.scrollHeight;
+                } 
+                else 
+                {
+                  loadActiveChats();
+                }
           });
 
           await connection.start();
           console.log("SignalR Connected.");
-      } catch (err) {
+      } 
+      catch (err) 
+      {
           console.error("SignalR Connection Error: ", err);
           return false;
       }
+
   }
 
   await initSignalR();
@@ -113,7 +160,8 @@ document.addEventListener("DOMContentLoaded", async function () {
   }
 
   // Open existing chat
-  async function openChat(conversationId, studentId, studentName) {
+  async function openChat(conversationId, studentId, studentName) 
+  {
       currentConversationId = conversationId;
       currentReceiverId = studentId;
 
@@ -128,14 +176,24 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       // Load messages
       await loadMessages(conversationId);
+
   }
 
   // Load messages for conversation
   async function loadMessages(conversationId) {
-      try {
+      try 
+      {
           const response = await fetch(`/Chat/GetMessages/${conversationId}`);
           const data = await response.json();
           console.log("Messages:", data);
+
+        //   if(!data.response === 404)
+        //   {
+        //     data.messages.sort((a,b) =>
+        //         {
+        //             return new Date(a.sentAt) - new Date(b.sentAt);
+        //         });
+        //   }
 
           messageList.innerHTML = "";
 
@@ -144,18 +202,27 @@ document.addEventListener("DOMContentLoaded", async function () {
               return;
           }
 
+          const sortedMessage = data.messages.sort((a,b) =>
+            {
+                return new Date(a.sentAt) - new Date(b.sentAt);
+            });
+
           data.messages.forEach(appendMessage);
           messageList.scrollTop = messageList.scrollHeight;
-      } catch (error) {
+      } catch (error) 
+      {
           console.error("Error loading messages:", error);
           messageList.innerHTML = '<div class="error-message">Error loading messages</div>';
       }
   }
 
+
   // Append message to chat
-  function appendMessage(message) {
+  async function appendMessage(message) 
+  {
       const messageDiv = document.createElement("div");
-      messageDiv.className = `message ${message.senderId === currentReceiverId ? 'received' : 'sent'}`;
+      const isSent = message.senderId === "self" || message.senderId !== currentReceiverId;
+      messageDiv.className = `message ${isSent ? 'sent' : 'received'}`;
       
       const contentP = document.createElement("p");
       contentP.textContent = message.content;
@@ -171,14 +238,22 @@ document.addEventListener("DOMContentLoaded", async function () {
       messageList.scrollTop = messageList.scrollHeight;
   }
 
-  // Send message handler
-  async function sendMessage() {
-      if (!currentConversationId || !chatInput.value.trim()) {
-          return;
-      }
 
-      try {
-          const response = await fetch("/Chat/SendMessage", {
+  // Send message handler
+  async function sendMessage() 
+  {
+
+      if (!currentConversationId || !chatInput.value.trim()) 
+        {
+          return;
+        }
+
+        const messageContent = chatInput.value.trim();
+
+      try 
+      {
+          const response = await fetch("/Chat/SendMessage", 
+            {
               method: "POST",
               headers: {
                   "Content-Type": "application/json",
@@ -187,35 +262,61 @@ document.addEventListener("DOMContentLoaded", async function () {
                   conversationId: currentConversationId,
                   content: chatInput.value.trim()
               })
-          });
+            });
 
-          if (!response.ok) {
+          if (!response.ok) 
+            {
               throw new Error("Failed to send message");
-          }
+            }
 
-          chatInput.value = "";
-      } catch (error) {
+            // const messageData =
+            // {
+            //     content: messageContent,
+            //     sentAt: new Date().toISOString(),
+            //     senderId: "self",
+            //     receiverId: currentReceiverId,
+            //     conversationId: currentConversationId
+            // };
+
+            // await appendMessage(messageData);
+
+            chatInput.value = "";
+
+            await loadMessages(currentConversationId);
+
+            messageList.scrollTop = messageList.scrollHeight;
+
+      }
+      catch (error) 
+      {
           console.error("Error sending message:", error);
           alert("Failed to send message");
       }
   }
 
+
+
   // Event Listeners
-  document.getElementById("open-chat-popup")?.addEventListener("click", function() {
+  document.getElementById("open-chat-popup")?.addEventListener("click", function() 
+  {
       chatContainer.style.display = "block";
       document.getElementById("chats-list-view").style.display = "block";
       document.getElementById("chat-messages-view").style.display = "none";
       loadActiveChats();
   });
 
-  document.getElementById("new-chat-toggle")?.addEventListener("click", function() {
+
+  document.getElementById("new-chat-toggle")?.addEventListener("click", function() 
+  {
       chatContainer.style.display = "block";
       document.getElementById("chats-list-view").style.display = "none";
       document.getElementById("new-chat-view").style.display = "block";
       loadEnrolledStudents();
   });
 
-  document.getElementById("back-to-chats")?.addEventListener("click", function() {
+
+  document.getElementById("back-to-chats")?.addEventListener("click", function() 
+  {
       document.getElementById("chat-messages-view").style.display = "none";
       document.getElementById("chats-list-view").style.display = "block";
       currentConversationId = null;
@@ -223,18 +324,24 @@ document.addEventListener("DOMContentLoaded", async function () {
       loadActiveChats();
   });
 
-  document.getElementById("back-to-chats-new")?.addEventListener("click", function() {
+
+  document.getElementById("back-to-chats-new")?.addEventListener("click", function() 
+  {
       document.getElementById("new-chat-view").style.display = "none";
       document.getElementById("chats-list-view").style.display = "block";
       loadActiveChats();
   });
 
+
   sendButton?.addEventListener("click", sendMessage);
 
-  chatInput?.addEventListener("keypress", function(event) {
-      if (event.key === "Enter" && !event.shiftKey) {
+
+  chatInput?.addEventListener("keypress", function(event) 
+  {
+      if (event.key === "Enter" && !event.shiftKey) 
+        {
           event.preventDefault();
           sendMessage();
-      }
+        }
   });
 });
