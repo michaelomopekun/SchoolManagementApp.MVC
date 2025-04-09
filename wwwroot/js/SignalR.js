@@ -16,17 +16,22 @@ document.addEventListener("DOMContentLoaded", function ()
   let connection = null;
 
   // Initialize SignalR
-  async function initializeSignalR() {
-    try {
+  async function initializeSignalR() 
+  {
+    try 
+    {
         connection = new signalR.HubConnectionBuilder()
             .withUrl("/chatHub")
             .withAutomaticReconnect()
             .build();
 
         // Set up message handler before starting connection
-        connection.on("ReceiveMessage", async function(message) {
+        connection.on("ReceiveMessage", async function(message) 
+        {
             console.log("Message received:", message);
-            if (message.conversationId === currentConversationId) {
+
+            if (message.conversationId === currentConversationId) 
+            {
                 await loadMessages(currentConversationId);
                 messageList.scrollTop = messageList.scrollHeight;
             }
@@ -36,18 +41,26 @@ document.addEventListener("DOMContentLoaded", function ()
         await connection.start();
         console.log("SignalR Connected.");
         return true;
-    } catch (err) {
+
+    } 
+    catch (err) 
+    {
         console.error("SignalR Connection Error:", err);
         return false;
     }
 }
 
 // Initialize SignalR when the page loads
-initializeSignalR().then(connected => {
-    if (!connected) {
+initializeSignalR().then(connected => 
+{
+    if (!connected) 
+    {
         console.error("Failed to establish SignalR connection");
     }
 });
+
+
+
 
 
   // Load Lecturers

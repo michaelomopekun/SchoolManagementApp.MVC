@@ -274,6 +274,42 @@ public class ChatController : Controller
         }
     }
 
+
+    [HttpGet("GetMessages/{conversationId}")]
+    public async Task<IActionResult> GetMessages([FromRoute] int conversationId)
+    {
+        try
+        {
+            _logger.LogInformation("Fetching messages for conversation {ConversationId}", conversationId);
+
+            var userId = await GetUserId();
+            var messages = await _chatService.GetConversationMessages(conversationId);
+
+            if (messages == null || !messages.Any())
+            {
+                _logger.LogWarning("No messages found for conversation {ConversationId}", conversationId);
+                return Ok(new List<Message>()); // Return empty list directly
+            }
+
+            var messageList = messages.Select(m => new
+            {
+                id = m.Id,
+                senderId = m.SenderId,
+                receiverId = m.ReceiverId,
+                content = m.Content,
+                sentAt = m.SentAt.ToString("yyyy-MM-ddTHH:mm:ss"),
+                status = m.Status
+            }).ToList();
+
+            return Json( new {messages = messageList}); // Return messages directly
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting messages for conversation {ConversationId}", conversationId);
+            return StatusCode(500, new { error = "Failed to load messages" });
+        }
+    }
+
     [HttpGet("GetLecturersStudents")]
     public async Task<IActionResult> GetLecturersStudents()
     {
@@ -300,40 +336,6 @@ public class ChatController : Controller
 
 
 
-[HttpGet("GetMessages/{conversationId}")]
-public async Task<IActionResult> GetMessages([FromRoute] int conversationId)
-{
-    try
-    {
-        _logger.LogInformation("Fetching messages for conversation {ConversationId}", conversationId);
-
-        var userId = await GetUserId();
-        var messages = await _chatService.GetConversationMessages(conversationId);
-
-        if (messages == null || !messages.Any())
-        {
-            _logger.LogWarning("No messages found for conversation {ConversationId}", conversationId);
-            return Ok(new List<Message>()); // Return empty list directly
-        }
-
-        var messageList = messages.Select(m => new
-        {
-            id = m.Id,
-            senderId = m.SenderId,
-            receiverId = m.ReceiverId,
-            content = m.Content,
-            sentAt = m.SentAt.ToString("yyyy-MM-ddTHH:mm:ss"),
-            status = m.Status
-        }).ToList();
-
-        return Json( new {messages = messageList}); // Return messages directly
-    }
-    catch (Exception ex)
-    {
-        _logger.LogError(ex, "Error getting messages for conversation {ConversationId}", conversationId);
-        return StatusCode(500, new { error = "Failed to load messages" });
-    }
-}
 
 
 
