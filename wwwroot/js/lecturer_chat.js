@@ -10,80 +10,43 @@ document.addEventListener("DOMContentLoaded", async function () {
   let currentConversationId = null;
   let currentReceiverId = null;
   let connection = null;
-  let  refreshInterval;
 
-
-  function startRefreshing()
-  {
-    if(refreshInterval) clearInterval(refreshInterval);
-    refreshInterval = setInterval(() => 
-    {
-        if(currentConversationId)
-        {
-            loadMessages(currentConversationId);
-        }
-    }, 2000);
-  }
-
-  function stopRefreshing()
-  {
-    if(refreshInterval)
-    {
-        clearInterval(refreshInterval);
-        refreshInterval = null;
-    }
-  }
 
   // Initialize SignalR connection
-  async function initSignalR() 
-  {
-      try 
-      {
+  async function initializeSignalR() {
+    try {
+        connection = new signalR.HubConnectionBuilder()
+            .withUrl("/chatHub")
+            .withAutomaticReconnect()
+            .build();
 
-          connection = new signalR.HubConnectionBuilder()
-              .withUrl("/chatHub")
-              .withAutomaticReconnect()
-              .build();
-
-
-          connection.on("ReceiveMessage", async function (message) 
-          {
-              console.log("Message received:", message);
-
-              if (message.conversationId === currentConversationId) 
-                {
-                //     const messageData = 
-                //     {
-                //         content: message.content,
-                //         sentAt: message.sentAt,
-                //         senderId: message.senderId,
-                //         receiverId: message.receiverId,
-                //         conversationId: message.conversationId
-                //     }
-
-                //   appendMessage(messageData);
+        // Set up message handler before starting connection
+        connection.on("ReceiveMessage", async function(message) {
+            console.log("Message received:", message);
+            if (message.conversationId === currentConversationId) {
                 await loadMessages(currentConversationId);
+                messageList.scrollTop = messageList.scrollHeight;
+            }
+        });
 
-                  messageList.scrollTop = messageList.scrollHeight;
-                } 
-                else 
-                {
-                  loadActiveChats();
-                }
-          });
+        // Start the connection
+        await connection.start();
+        console.log("SignalR Connected.");
+        return true;
+    } catch (err) {
+        console.error("SignalR Connection Error:", err);
+        return false;
+    }
+}
 
-          await connection.start();
-          console.log("SignalR Connected.");
-      } 
-      catch (err) 
-      {
-          console.error("SignalR Connection Error: ", err);
-          return false;
-      }
+// Initialize SignalR when the page loads
+initializeSignalR().then(connected => {
+    if (!connected) {
+        console.error("Failed to establish SignalR connection");
+    }
+});
 
-  }
-
-  await initSignalR();
+  
 
   // Load active chats
   async function loadActiveChats() {
@@ -162,6 +125,8 @@ document.addEventListener("DOMContentLoaded", async function () {
   // Open existing chat
   async function openChat(conversationId, studentId, studentName) 
   {
+    try
+    {
       currentConversationId = conversationId;
       currentReceiverId = studentId;
 
@@ -176,6 +141,24 @@ document.addEventListener("DOMContentLoaded", async function () {
 
       // Load messages
       await loadMessages(conversationId);
+
+      if(connection)
+      {
+        await connection.invoke("JoinConversation", conversationId.toString());
+        console.log("Joined conversation:", conversationId);
+      }
+      else
+      {
+        console.error("SignalR connection is  not established.");
+      }
+
+      console.log("Joined conversation:", conversationId);
+    }
+    catch(error)
+    {
+        console.error("Error opening chat:", error);
+        alert("Failed to open chat. Please try again.");
+    }
 
   }
 
@@ -282,6 +265,24 @@ document.addEventListener("DOMContentLoaded", async function () {
 
             chatInput.value = "";
 
+            if(connection)
+            {
+                console.log("Broadcasting message via SignalR",
+                    {
+                        conversationId: currentConversationId,
+                        content: messageContent
+                    }
+                );
+                
+                await connection.invoke("SendMessage", currentConversationId, messageContent);
+                console.log("Message broardcasted via SignalR");
+            }
+            else
+            {
+                console.error("SignalR connection is not established.", connection.State);
+                throw new Error("Chat connection lost. Please refresh the page.");
+            }
+
             await loadMessages(currentConversationId);
 
             messageList.scrollTop = messageList.scrollHeight;
@@ -290,7 +291,7 @@ document.addEventListener("DOMContentLoaded", async function () {
       catch (error) 
       {
           console.error("Error sending message:", error);
-          alert("Failed to send message");
+          alert("Failed to send message" + error.message);
       }
   }
 

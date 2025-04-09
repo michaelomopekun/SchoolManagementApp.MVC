@@ -22,6 +22,8 @@ public class ChatHub : Hub
             var userId = Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var userName = Context.User.Identity?.Name;
 
+            _logger.LogInformation("User {UserName} with {userId} is sending message to conversation {ConversationId}", userName, userId, conversationId);
+
             if(string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(userName))
             {
                 throw new HubException("User not authenticated");
@@ -39,6 +41,8 @@ public class ChatHub : Hub
             };
 
             // Only broadcast to others in the group, don't save
+            _logger.LogInformation("ready to Broadcasting message to conversation {ConversationId}", conversationId);
+
             await Clients.Group(conversationId.ToString()).SendAsync("ReceiveMessage", messageData);
 
             _logger.LogInformation("Message sent from {UserName} in conversation {ConversationId}: {Content}", userName, conversationId, content);

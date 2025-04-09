@@ -11,24 +11,15 @@
 
 }
 
-@* @if (TempData["Success"] != null)
-{
-    <div class="alert alert-success">@TempData["Success"]</div>
-}
-
-@if (TempData["Error"] != null)
-{
-    <div class="alert alert-danger">@TempData["Error"]</div>
-} *@
 
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <base href="/SchoolManagementApp.MVC/">
+    <base href="/SchoolManagement/">
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - SchoolManagementApp.MVC</title>
+    <title>@ViewData["Title"] - SchoolManagement</title>
     <script type="importmap"></script>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
