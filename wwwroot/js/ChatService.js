@@ -1,21 +1,24 @@
 export class ChatService {
   constructor() {
-      // Initialize properties
-      this.chatContainer = document.getElementById("chat-popup-container");
-      this.messageList = document.getElementById("message-list");
-      this.chatInput = document.getElementById("chat-input");
-      this.sendButton = document.getElementById("send-chat-message");
-      this.chatMessages = document.getElementById("chat-messages");
-      this.chatTitle = document.getElementById("chat-title");
-      this.currentConversationId = null;
-      this.currentReceiverId = null;
-      this.connection = null;
+
+    this.chatContainer = document.getElementById("chat-popup-container");
+    this.messageList = document.getElementById("message-list");
+    this.chatInput = document.getElementById("chat-input");
+    this.sendButton = document.getElementById("send-chat-message");
+    this.chatMessages = document.getElementById("chat-messages");
+    this.chatTitle = document.getElementById("chat-title");
+    this.lecturerDropdown = document.getElementById("lecturer-dropdown");
+    this.currentConversationId = null;
+    this.currentReceiverId = null;
+    this.connection = null;
+    this.isSendingMessage = false;
 
       // Bind methods to preserve 'this' context
       this.sendMessage = this.sendMessage.bind(this);
       this.loadMessages = this.loadMessages.bind(this);
       this.appendMessage = this.appendMessage.bind(this);
       this.openChat = this.openChat.bind(this);
+      this.loadLecturers = this.loadLecturers.bind(this);
       this.loadActiveChats = this.loadActiveChats.bind(this);
       this.loadEnrolledStudents = this.loadEnrolledStudents.bind(this);
       this.initializeEventListeners = this.initializeEventListeners.bind(this);
@@ -181,11 +184,13 @@ async loadMessages(conversationId) {
 }
 
 
-async sendMessage() {
+async sendMessage() 
+{
   if (!this.currentConversationId || !this.chatInput.value.trim()) {
       return;
   }
 
+  this.isSendingMessage = true;
   const messageContent = this.chatInput.value.trim();
 
   try {
@@ -209,12 +214,60 @@ async sendMessage() {
       if (this.connection?.state === "Connected") {
           await this.connection.invoke("SendMessage", this.currentConversationId, messageContent);
           await this.loadMessages(this.currentConversationId);
+          this.messageList.scrollTop = this.messageList.scrollHeight;
       } else {
           throw new Error("Chat connection lost. Please refresh the page.");
       }
   } catch (error) {
       console.error("Error sending message:", error);
       alert("Failed to send message: " + error.message);
+  }
+  finally {
+      this.isSendingMessage = false;
+  }
+}
+
+
+async loadLecturers() 
+{
+  try 
+  {
+      console.log("Fetching recipients...");
+      const response = await fetch("/Chat/GetLecturers");
+      console.log("Response status:", response.status);
+
+      if (!response.ok) 
+      {
+          throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Raw response:", data);
+
+      // Handle both array and wrapped formats
+      const lecturers = Array.isArray(data) ? data : (data.$values || []);
+      console.log("Processed lecturers:", lecturers);
+
+      this.lecturerDropdown.innerHTML = '<option value="">Select a recipient</option>';
+      
+      if (lecturers.length === 0) 
+      {
+          this.lecturerDropdown.innerHTML += '<option value="" disabled>No recipients available</option>';
+          return;
+      }
+
+      lecturers.forEach(lecturer => 
+      {
+          const option = document.createElement("option");
+          option.value = lecturer.id;
+          option.textContent = `${lecturer.name || 'Unknown'}`;
+          this.lecturerDropdown.appendChild(option);
+      });
+  } 
+  catch (error) 
+  {
+      console.error("Error loading recipients:", error);
+      this.lecturerDropdown.innerHTML = '<option value="">Error loading recipients</option>';
   }
 }
 
@@ -235,6 +288,120 @@ appendMessage(message) {
   messageDiv.appendChild(timeSpan);
   
   this.messageList.appendChild(messageDiv);
+  this.messageList.scrollTop = this.messageList.scrollHeight;
 }
 
 }
+
+
+
+
+
+
+
+//    // Load messages for the current conversation
+//    async function loadMessages(conversationId) 
+//    {
+//        if (!conversationId) 
+//        {
+//            console.error("No conversation ID provided");
+//            return;
+//        }
+   
+//        try 
+//        {
+//            console.log("Loading messages for conversation:", conversationId);
+   
+//            const response = await fetch(`/Chat/GetMessages/${conversationId}`, 
+//            {
+//                method: 'GET',
+//                headers: 
+//                {
+//                    "Accept": "application/json",
+//                    "Content-Type": "application/json"
+//                },
+//                credentials: 'include'
+//            });
+   
+//            console.log("Response status:", response.status);
+
+//            if(response.status === 500)
+//            {
+//                console.log("internal error");
+//                messageList.innerHTML = `<div class="no-message">Internal error 500</div>`;
+//                return;
+//            }
+   
+//            if (!response.ok)
+//            {
+//                if(response.status == 404)
+//                {
+//                    console.warn("No messages found for this conversation.");
+//                    messageList.innerHTML = '<div class="no-messages">No messages yet</div>';
+//                    return;
+//                }
+//                const errorData = await response.text();
+//                console.error("Error response:", errorData);
+//                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+//            }
+
+//            const data = await response.json();
+//            console.log("Raw messages response:", data);
+
+//            const sortedMessages = data.messages.sort((a,b) =>
+//            {
+//                return new Date(a.sentAt) - new Date(b.sentAt);
+//            });
+   
+//            messageList.innerHTML = "";
+
+//            const fragment = document.createDocumentFragment();
+   
+//            // Handle direct array format
+//            const messages = data.messages || [];
+//            console.log("Processed messages:", messages);
+   
+//            if (!data.messages || data.messages.length === 0)
+//            {
+//                messageList.innerHTML = '<div class="no-messages">No messages yet</div>';
+//                return;
+//            }
+   
+//            messages.forEach(message => 
+//            {
+//                const messageDiv = document.createElement("div");
+
+//                messageDiv.className = `message ${message.senderId === currentReceiverId ? 'received' : 'sent'}`;
+       
+//                const contentP = document.createElement("p");
+               
+//                contentP.textContent = message.content;
+       
+//                messageDiv.appendChild(contentP);
+
+//                const timeSpan = document.createElement("span");
+
+//                timeSpan.className = "message-time";
+               
+//                const messageDate = new Date(message.sentAt);
+               
+//                timeSpan.textContent = messageDate.toLocaleString();
+               
+//                messageDiv.appendChild(timeSpan);
+       
+//                fragment.appendChild(messageDiv);
+
+//            });
+
+//            messageList.appendChild(fragment);
+   
+//            messageList.scrollTop = messageList.scrollHeight;
+
+//        } 
+//        catch (error) 
+//        {
+//            console.error("Error loading messages:", error);
+//            messageList.innerHTML = '<div class="error-message">Error loading messages</div>';
+//        }
+//    }
+   

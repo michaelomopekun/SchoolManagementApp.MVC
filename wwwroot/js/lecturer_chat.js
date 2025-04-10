@@ -13,14 +13,14 @@ export class LecturerChat extends ChatService
     initializeEventListeners() 
     {
         document.getElementById("open-chat-popup")?.addEventListener("click", () => {
-            this.chatContainer.style.display = "block";
+            document.getElementById("chat-popup-container").style.display = "block";
             document.getElementById("chats-list-view").style.display = "block";
             document.getElementById("chat-messages-view").style.display = "none";
             this.loadActiveChats();
         });
 
         document.getElementById("new-chat-toggle")?.addEventListener("click", () => {
-            this.chatContainer.style.display = "block";
+            document.getElementById("chat-popup-container").style.display = "block";
             document.getElementById("chats-list-view").style.display = "none";
             document.getElementById("new-chat-view").style.display = "block";
             this.loadEnrolledStudents();
@@ -40,7 +40,7 @@ export class LecturerChat extends ChatService
             this.loadActiveChats();
         });
 
-        // this.sendButton?.addEventListener("click", () => this.sendMessage());
+        this.sendButton?.addEventListener("click", () => this.sendMessage());
 
         this.chatInput?.addEventListener("keypress", (event) => {
             if (event.key === "Enter" && !event.shiftKey) {

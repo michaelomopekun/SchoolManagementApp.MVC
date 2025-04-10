@@ -29,7 +29,7 @@
     <link rel="stylesheet" href="~/css/site.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.0/signalr.min.js"></script>
     <script type= "module" src="~/js/notification.js"></script>
-    <script type="importmap">
+    @* <script type="importmap">
     {
         "imports": 
         {
@@ -39,7 +39,7 @@
             "/js/Student_chat.js": "/js/Student_chat.js"
         }
     }
-    </script>
+    </script> *@
 
     @if (User.IsInRole("Lecturer"))
     {
@@ -48,7 +48,7 @@
     }
     else
     {
-        <script src="~/js/SignalR.js"></script>
+        <script src="~/js/SignalR.js" type="module"></script>
     }
     <link rel="stylesheet" href="~/css/chat.css" />
     <script type= "module" src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
