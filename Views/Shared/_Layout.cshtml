@@ -29,13 +29,21 @@
     <link rel="stylesheet" href="~/css/site.css" />
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/6.0.0/signalr.min.js"></script>
     <script type= "module" src="~/js/notification.js"></script>
-    @* <script type="module" src="~/js/Student_chat.js"></script> *@
-    @* <script type="module" src="~/js/ChatService.js"></script> *@
-    @* <script type="module" src="~/js/chat.js"></script> *@
-    @* <script type="module" src="~/js/dist/Student_chat.js"></script> *@
+    <script type="importmap">
+    {
+        "imports": 
+        {
+            "/js/ChatService.js": "/js/ChatService.js",
+            "/js/lecturer_chat.js": "/js/lecturer_chat.js",
+            "/js/SignalR.js": "/js/SignalR.js",
+            "/js/Student_chat.js": "/js/Student_chat.js"
+        }
+    }
+    </script>
 
     @if (User.IsInRole("Lecturer"))
     {
+        <script src="~/js/ChatService.js" type="module"></script>
         <script src="~/js/lecturer_chat.js" type="module"></script>
     }
     else
@@ -193,7 +201,7 @@
         </footer>
         <script src="~/lib/jquery/dist/jquery.min.js"></script>
         <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-        <script src="~/js/chat.js" asp-append-version="true"></script>
+        @* <script src="~/js/chat.js" asp-append-version="true"></script> *@
         @await RenderSectionAsync("Scripts", required: false)
 </body>
 
