@@ -1,4 +1,7 @@
 
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
 namespace SchoolManagementApp.MVC.Services
 {
     public interface IChatService
@@ -13,5 +16,6 @@ namespace SchoolManagementApp.MVC.Services
         Task UpdateTypingStatus(int conversationId, int userId, bool isTyping);
         Task<bool> DeleteMessage(int messageId, int userId);
         Task<bool> AddReaction(int messageId, int userId, string reaction);
+        Task<IEnumerable<ConversationParticipant>> GetConversationParticipant(int conversationId);
     }
 }

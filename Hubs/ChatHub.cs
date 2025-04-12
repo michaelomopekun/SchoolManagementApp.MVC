@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.SignalR;
 using SchoolManagementApp.MVC.Models;
 using SchoolManagementApp.MVC.Services;
@@ -40,12 +41,20 @@ public class ChatHub : Hub
                 status = "Sent"
             };
 
-            // Only broadcast to others in the group, don't save
+            // Only broadcast to others in the group
             _logger.LogInformation("ready to Broadcasting message to conversation {ConversationId}", conversationId);
 
             await Clients.Group(conversationId.ToString()).SendAsync("ReceiveMessage", messageData);
 
+            // broadcast to other participants in the conversation to update/reload their chat list
+            var otherParticipants = await _chatService.GetConversationParticipant(conversationId);
+            foreach (var participant in otherParticipants.Where(p => p.UserId.ToString() != userId))
+            {
+                await Clients.User(participant.UserId.ToString()).SendAsync("UpdateChatList");
+                 _logger.LogInformation("Notifying user {UserId} to update chat list", participant.UserId);
+            }
             _logger.LogInformation("Message sent from {UserName} in conversation {ConversationId}: {Content}", userName, conversationId, content);
+
         }
         catch (Exception ex)
         {

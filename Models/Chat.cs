@@ -120,6 +120,8 @@ public class Message
 
     public virtual MessageAttachment? Attachment { get; set; }
 
+    public virtual ConversationParticipant? ConversationParticipant { get; set; }
+
     public ICollection<MessageReaction> Reactions { get; set; } = new List<MessageReaction>();
 
     // public ICollection<MessageReadStatus> ReadStatuses { get; set; } = new List<MessageReadStatus>();

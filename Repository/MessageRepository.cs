@@ -146,8 +146,11 @@ public class MessageRepository : IMessageRepository
             }
 
             var conversationUnreadMessage = await _context.Messages
+                // .Include(message => message.ConversationParticipant)
                 .CountAsync(message => message.ConversationId == conversationId &&
                                 !message.IsDeleted &&
+                                !message.IsRead &&
+                                message.SenderId != userId &&
                                 message.SentAt > participant.LastReadAt);
 
             return conversationUnreadMessage;
@@ -155,7 +158,7 @@ public class MessageRepository : IMessageRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex.Message, "-----------------Error Getting Participants unread messages-----------------");
+            _logger.LogError(ex.Message, "-----------------Error Getting Participants unread messages-----------------"); 
             throw;
         }
     }

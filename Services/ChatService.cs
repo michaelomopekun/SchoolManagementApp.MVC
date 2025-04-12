@@ -306,6 +306,34 @@ public async Task<IEnumerable<Conversation>> GetUserConversations(int userId)
         }
     }
 
+
+    public async Task<IEnumerable<ConversationParticipant>> GetConversationParticipant(int conversationId)
+    {
+        if(conversationId <= 0)
+        {
+            _logger.LogError("[Chat] Invalid conversationId {ConversationId}", conversationId);
+            throw new ArgumentException("Invalid conversation ID");
+        }
+
+        try
+        {
+            var ConversationParticipant = await _conversationRepository.GetConversationParticipantsAsync(conversationId);
+
+            if (ConversationParticipant == null)
+            {
+                _logger.LogWarning("[Chat] No participants found for conversation {ConversationId}", conversationId);
+                return new List<ConversationParticipant>();
+            }
+
+            return ConversationParticipant;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[Chat] Failed to get participants for conversation {ConversationId}", conversationId);
+            throw;
+        }
+    }
+
     public Task UpdateTypingStatus(int conversationId, int userId, bool isTyping)
     {
         throw new NotImplementedException();

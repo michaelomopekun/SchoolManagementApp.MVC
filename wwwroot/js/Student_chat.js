@@ -81,7 +81,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         throw new Error(data.error || "Failed to start chat");
       }
 
-      // Update the current conversation ID
       currentConversationId = data.conversationId;
 
       // Enable the chat input and send button

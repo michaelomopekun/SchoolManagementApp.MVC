@@ -1,9 +1,10 @@
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SchoolManagementApp.MVC.Repository;
 using SchoolManagementApp.MVC.Services;
 
-
+[Authorize]
 [Route("Chat")]
 public class ChatController : Controller
 {
@@ -195,7 +196,7 @@ public class ChatController : Controller
         }
     }
 
-    [HttpPost("GetUnreadMessageCount")]
+    [HttpPost("GetUnreadMessageCount/{conversationId}")]
     public async Task<IActionResult> GetUnreadMessageCount(int conversationId)
     {
         var userId = await GetUserId();
@@ -208,6 +209,11 @@ public class ChatController : Controller
     {
         try
         {
+            if (!User.Identity.IsAuthenticated)
+            {
+                return Unauthorized(new { error = "User not authenticated" });
+            }
+
             var userId = await GetUserId();
 
             if (userId <= 0)

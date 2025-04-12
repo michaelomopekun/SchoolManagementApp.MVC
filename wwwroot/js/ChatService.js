@@ -1,5 +1,7 @@
-export class ChatService {
-  constructor() {
+export class ChatService 
+{
+  constructor() 
+  {
 
     this.chatContainer = document.getElementById("chat-popup-container");
     this.messageList = document.getElementById("message-list");
@@ -24,35 +26,50 @@ export class ChatService {
       this.initializeEventListeners = this.initializeEventListeners.bind(this);
 
       // Initialize SignalR and event listeners
-      this.initializeSignalR().then(connected => {
-          if (connected) {
+      this.initializeSignalR().then(connected => 
+        {
+          if (connected) 
+          {
               this.initializeEventListeners();
-          } else {
+          } 
+          else 
+          {
               console.error("Failed to establish SignalR connection");
           }
-      });
+        });
   }
 
-  async initializeSignalR() {
-      try {
-          this.connection = new signalR.HubConnectionBuilder()
-              .withUrl("/chatHub")
-              .withAutomaticReconnect()
-              .build();
+  async initializeSignalR() 
+  {
+      try 
+      {
+            this.connection = new signalR.HubConnectionBuilder()
+                .withUrl("/chatHub")
+                .withAutomaticReconnect()
+                .build();
 
-          // Set up message handler before starting connection
-          this.connection.on("ReceiveMessage", async (message) => {
-              console.log("Message received:", message);
-              if (message.conversationId === this.currentConversationId) {
-                  await this.loadMessages(this.currentConversationId);
-                  this.messageList.scrollTop = this.messageList.scrollHeight;
-              }
-          });
+            // handler for message receivied update
+            this.connection.on("ReceiveMessage", async (message) => {
+                console.log("Message received:", message);
+                if (message.conversationId === this.currentConversationId) {
+                    await this.loadMessages(this.currentConversationId);
+                    this.messageList.scrollTop = this.messageList.scrollHeight;
+                }
+            });
+
+            //handler for chat list update
+            this.connection.on("updateChatList", async () => 
+            {
+                await this.loadActiveChats();
+                console.log("Chat list updated.");
+            })
 
           await this.connection.start();
           console.log("SignalR Connected.");
           return true;
-      } catch (err) {
+      } 
+      catch (err) 
+      {
           console.error("SignalR Connection Error:", err);
           return false;
       }
@@ -190,8 +207,9 @@ async sendMessage()
       return;
   }
 
-  this.isSendingMessage = true;
+//   this.isSendingMessage = true;
   const messageContent = this.chatInput.value.trim();
+  this.chatInput.value = "";
 
   try {
       const response = await fetch("/Chat/SendMessage", {
@@ -203,28 +221,29 @@ async sendMessage()
               conversationId: this.currentConversationId,
               content: messageContent
           })
+
       });
 
       if (!response.ok) {
           throw new Error("Failed to send message");
       }
 
-      this.chatInput.value = "";
 
-      if (this.connection?.state === "Connected") {
+      if (this.connection?.state === "Connected") 
+        {
           await this.connection.invoke("SendMessage", this.currentConversationId, messageContent);
-          await this.loadMessages(this.currentConversationId);
           this.messageList.scrollTop = this.messageList.scrollHeight;
-      } else {
+        } else 
+        {
           throw new Error("Chat connection lost. Please refresh the page.");
-      }
+        }
   } catch (error) {
       console.error("Error sending message:", error);
       alert("Failed to send message: " + error.message);
   }
-  finally {
-      this.isSendingMessage = false;
-  }
+//   finally {
+//       this.isSendingMessage = false;
+//   }
 }
 
 
@@ -293,115 +312,3 @@ appendMessage(message) {
 
 }
 
-
-
-
-
-
-
-//    // Load messages for the current conversation
-//    async function loadMessages(conversationId) 
-//    {
-//        if (!conversationId) 
-//        {
-//            console.error("No conversation ID provided");
-//            return;
-//        }
-   
-//        try 
-//        {
-//            console.log("Loading messages for conversation:", conversationId);
-   
-//            const response = await fetch(`/Chat/GetMessages/${conversationId}`, 
-//            {
-//                method: 'GET',
-//                headers: 
-//                {
-//                    "Accept": "application/json",
-//                    "Content-Type": "application/json"
-//                },
-//                credentials: 'include'
-//            });
-   
-//            console.log("Response status:", response.status);
-
-//            if(response.status === 500)
-//            {
-//                console.log("internal error");
-//                messageList.innerHTML = `<div class="no-message">Internal error 500</div>`;
-//                return;
-//            }
-   
-//            if (!response.ok)
-//            {
-//                if(response.status == 404)
-//                {
-//                    console.warn("No messages found for this conversation.");
-//                    messageList.innerHTML = '<div class="no-messages">No messages yet</div>';
-//                    return;
-//                }
-//                const errorData = await response.text();
-//                console.error("Error response:", errorData);
-//                throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-//            }
-
-//            const data = await response.json();
-//            console.log("Raw messages response:", data);
-
-//            const sortedMessages = data.messages.sort((a,b) =>
-//            {
-//                return new Date(a.sentAt) - new Date(b.sentAt);
-//            });
-   
-//            messageList.innerHTML = "";
-
-//            const fragment = document.createDocumentFragment();
-   
-//            // Handle direct array format
-//            const messages = data.messages || [];
-//            console.log("Processed messages:", messages);
-   
-//            if (!data.messages || data.messages.length === 0)
-//            {
-//                messageList.innerHTML = '<div class="no-messages">No messages yet</div>';
-//                return;
-//            }
-   
-//            messages.forEach(message => 
-//            {
-//                const messageDiv = document.createElement("div");
-
-//                messageDiv.className = `message ${message.senderId === currentReceiverId ? 'received' : 'sent'}`;
-       
-//                const contentP = document.createElement("p");
-               
-//                contentP.textContent = message.content;
-       
-//                messageDiv.appendChild(contentP);
-
-//                const timeSpan = document.createElement("span");
-
-//                timeSpan.className = "message-time";
-               
-//                const messageDate = new Date(message.sentAt);
-               
-//                timeSpan.textContent = messageDate.toLocaleString();
-               
-//                messageDiv.appendChild(timeSpan);
-       
-//                fragment.appendChild(messageDiv);
-
-//            });
-
-//            messageList.appendChild(fragment);
-   
-//            messageList.scrollTop = messageList.scrollHeight;
-
-//        } 
-//        catch (error) 
-//        {
-//            console.error("Error loading messages:", error);
-//            messageList.innerHTML = '<div class="error-message">Error loading messages</div>';
-//        }
-//    }
-   

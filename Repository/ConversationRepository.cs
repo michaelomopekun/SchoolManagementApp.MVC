@@ -184,16 +184,49 @@ public class ConversationRepository : IConversationRepository
 
     }
 
-            public async Task<Conversation?> GetConversationBetweenUsersAsync(int user1Id, int user2Id)
-        {
-            if(user1Id != 0 && user2Id != 0){
-            return await _context.Conversations
-                .Include(c => c.Participants)
-                .FirstOrDefaultAsync(c => 
-                    c.Type == ConversationType.StudentLecturerChat &&
-                    c.Participants.Any(p => p.UserId == user1Id) &&
-                    c.Participants.Any(p => p.UserId == user2Id));
-            }
-            return null;
+    public async Task<Conversation?> GetConversationBetweenUsersAsync(int user1Id, int user2Id)
+    {
+        if(user1Id != 0 && user2Id != 0){
+        return await _context.Conversations
+            .Include(c => c.Participants)
+            .FirstOrDefaultAsync(c => 
+                c.Type == ConversationType.StudentLecturerChat &&
+                c.Participants.Any(p => p.UserId == user1Id) &&
+                c.Participants.Any(p => p.UserId == user2Id));
         }
+        return null;
+    }
+
+
+    public async Task<IEnumerable<ConversationParticipant>> GetConversationParticipantsAsync(int conversationId)
+    {
+        if(conversationId <= 0)
+        {
+            _logger.LogError("---------------Conversation Id is null-----------------");
+            throw new ArgumentNullException(nameof(conversationId));
+        }
+        try
+        {
+            var Partticipants = await _context.ConversationParticipants
+                .Include(u => u.User)
+                .Where(u => u.ConversationId == conversationId && !u.IsDeleted)
+                .ToListAsync();
+
+            if (Partticipants != null)
+            {
+                _logger.LogInformation("--------------Conversation participants retrieved with ID: {Id}, and number of participants: {Count}--------------", Partticipants.FirstOrDefault()?.ConversationId, Partticipants.Count());
+                return Partticipants;
+            }
+            else
+            {
+                _logger.LogError("---------------Participants is null-----------------");
+                throw new ArgumentNullException(nameof(Partticipants));
+            }
+        }
+        catch
+        {
+            _logger.LogError("--------------Error getting conversation participants with ID: {Id}--------------", conversationId);
+            throw;
+        }
+    }
 }

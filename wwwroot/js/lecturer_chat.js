@@ -9,9 +9,10 @@ export class LecturerChat extends ChatService
     }
 
 
-
+    // Initialize event listeners
     initializeEventListeners() 
     {
+        // Show chat popup
         document.getElementById("open-chat-popup")?.addEventListener("click", () => {
             document.getElementById("chat-popup-container").style.display = "block";
             document.getElementById("chats-list-view").style.display = "block";
@@ -19,6 +20,7 @@ export class LecturerChat extends ChatService
             this.loadActiveChats();
         });
 
+        // show new chat view
         document.getElementById("new-chat-toggle")?.addEventListener("click", () => {
             document.getElementById("chat-popup-container").style.display = "block";
             document.getElementById("chats-list-view").style.display = "none";
@@ -26,6 +28,13 @@ export class LecturerChat extends ChatService
             this.loadEnrolledStudents();
         });
 
+        // close chat popup
+        document.getElementById("close-chat-popup")?.addEventListener("click", ()=> 
+            {
+              document.getElementById("chat-popup-container").style.display = "none";
+        });
+
+        // back to chat list button
         document.getElementById("back-to-chats")?.addEventListener("click", () => {
             document.getElementById("chat-messages-view").style.display = "none";
             document.getElementById("chats-list-view").style.display = "block";
@@ -40,13 +49,55 @@ export class LecturerChat extends ChatService
             this.loadActiveChats();
         });
 
-        this.sendButton?.addEventListener("click", () => this.sendMessage());
+        // close new chat popup
+        const closeButtons = document.getElementsByClassName("close-btn");
 
-        this.chatInput?.addEventListener("keypress", (event) => {
-            if (event.key === "Enter" && !event.shiftKey) {
-                event.preventDefault();
-                this.sendMessage();
+        Array.from(closeButtons).forEach(button => 
+        {
+          button?.addEventListener("click", () => 
+          {
+            document.getElementsById("new-chat-view").style.display = "none";
+            document.getElementsById("chat-popup-container").style.display = "none";
+            this.currentConversationId = null;
+            this.currentReceiverId = null;
+          });
+      
+        });
+
+        // send message button click event
+        this.sendButton?.addEventListener("click", async () => 
+        {
+            if(this.isSendingMessage) return;
+            this.isSendingMessage = true;
+            try
+            {
+                await this.sendMessage();
+                await this.loadActiveChats();
             }
+            finally
+            {
+                this.isSendingMessage = false;
+            }
+
+        });
+
+        // send message on enter key press
+        this.chatInput?.addEventListener("keypress", async (event) => 
+            {
+
+                if (event.key === "Enter" && !event.shiftKey) 
+                {
+                    if(this.isSendingMessage) return;
+                    this.isSendingMessage = true;
+                    try
+                    {
+                        await this.sendMessage();
+                    }
+                    finally
+                    {
+                        this.isSendingMessage = false;
+                    }
+                }
         });
     }
 

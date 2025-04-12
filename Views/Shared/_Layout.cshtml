@@ -63,7 +63,7 @@
     {
         <partial name="_LecturerChatPartial" />
     }
-    else
+    else if (User.IsInRole("Student"))
     {
         <partial name="_ChatPartial" />
     }
@@ -123,10 +123,13 @@
                                     asp-action="Privacy">Privacy</a>
                             </li>
                             <li class="nav-item">
-                                <a href="javascript:void(0);" id="open-chat-popup" class="nav-link text-light">
-                                <i class="fas fa-comments"></i>
-                                <span>Chat</span>
-                            </a>
+                                @if(SignInManager.IsSignedIn(User) && !User.IsInRole("Admin"))
+                                {
+                                    <a href="javascript:void(0);" id="open-chat-popup" class="nav-link text-light">
+                                    <i class="fas fa-comments"></i>
+                                    <span>Chat</span>
+                                    </a>
+                                }
                             </li>
                         </ul>
 
@@ -166,26 +169,7 @@
                 </div>
             </nav>
         }
-
-
-            <div id="chat-popup-container" class="chat-popup" style="display: none;">
-                <div class="chat-header">
-                    <h3 id="chat-title">Chat</h3>
-                    <button id="close-chat-popup">&times;</button>
-                </div>
-                <div class="chat-body">
-                    <select id="lecturer-dropdown" class="form-select mb-3">
-                        <option value="">Select a recipient</option>
-                    </select>
-                    <div id="chat-messages" class="messages-container" style="display: none;">
-                        <div id="message-list" class="message-list"></div>
-                    </div>
-                </div>
-                <div class="chat-footer">
-                    <textarea id="chat-input" placeholder="Type your message..." disabled></textarea>
-                    <button id="send-chat-message" disabled>Send</button>
-                </div>
-            </div>
+    </header>
 
 
         <div class="container">
